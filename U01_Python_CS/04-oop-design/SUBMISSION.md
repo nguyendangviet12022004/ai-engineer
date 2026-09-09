@@ -6,44 +6,47 @@
 - Hoàn thành:
 - Số giờ thực tế đã bỏ ra:
 
-## Phần 2.1 — Class cơ bản, `@property`
+## Phần 2.1 — `ai_lab/models/base.py`: `@property is_fitted`
 
-- Output BT 2.1.1, 2.1.2 (`BankAccount`):
+- Output kiểm tra `is_fitted` không có setter:
 
-## Phần 2.2 — MRO, Composition
+## Phần 2.2 — `DummyModel`, `LinearModel`, `Trainer` (composition)
 
-- Output `__mro__` + giải thích:
-- Output `Trainer` với 2 optimizer khác nhau:
+- Output `Trainer(DummyModel())` và `Trainer(LinearModel())`:
 
-## Phần 2.3 — Magic methods
+## Phần 2.3 — `CSVDataset` (magic methods)
 
-- Output `Vector`:
-- Xác nhận `set` dedupe đúng theo `__eq__`+`__hash__`:
+- Output `repr(dataset)`, `len(dataset)`, `dataset[0]`:
 
-## Phần 2.4 — dataclass
+## Phần 2.4 — `TrainConfig`
 
-- Output validate `TrainConfig`:
-- Xác nhận `field(default_factory=list)` độc lập giữa các instance:
+- Output validate `precision`:
+- Xác nhận `tags` độc lập giữa các instance:
 
-## Phần 2.5 — ABC
+## Phần 2.5 — `BaseModel` (ABC) + `Dataset` (Protocol)
 
-- Output `TypeError` khi thiếu implement:
-- Output `DummyModel`/`LinearModelWrapper`:
+- Output `isinstance(csv_dataset, Dataset)` (phải `True` dù không kế thừa):
+- Output `TypeError` khi thiếu implement `predict`:
 
-## Phần 2.6 — Enum + Factory
+## Phần 2.6 — `ModelType` + `create_model_from_name`
 
-- Output `model_factory`:
+- Output với model hợp lệ và không hợp lệ:
 
-## Dự án tổng hợp — Mini Training Pipeline
+## Phần 2.7 — Lệnh `ai-lab train`
 
-- Link `datasets.py`, `pipeline.py`, `base_model.py`, `train_config.py`:
-- Output cả 4 tổ hợp (dataset × model):
+- Output `ai-lab train --model linear`:
 
 ```
 (dán output ở đây)
 ```
 
-- Xác nhận `run_pipeline()` không sửa dòng nào khi đổi dataset/model (Có/Không):
+- Output `ai-lab train --model dummy`:
+
+```
+(dán output ở đây)
+```
+
+- Xác nhận `run_pipeline`/`Trainer` không sửa dòng nào khi đổi `--model` (Có/Không):
 
 ## Trả lời quiz (3 câu)
 

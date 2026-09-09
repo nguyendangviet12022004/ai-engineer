@@ -6,59 +6,45 @@
 - Hoàn thành:
 - Số giờ thực tế đã bỏ ra:
 
-## Phần 2.1 — Tham số hàm
+## Phần 2.1 — `ai_lab/stats.py`: tham số hàm
 
-- Output BT 2.1.1, 2.1.2:
+- Output `compute_stats(values, precision=2)`:
+- Output lỗi khi gọi `compute_stats(values, 2)` (không dùng tên):
 
-## Phần 2.2 — Closure (nonlocal)
+## Phần 2.2 — `ai_lab/stats.py`: closure đếm lượt gọi
 
-- Output BT 2.2.1, 2.2.2:
+- Output `get_stats_call_count()`:
 
-## Phần 2.3 — `functools`
+## Phần 2.3 — `ai_lab/fib.py`
 
-- Output benchmark `lru_cache` (BT 2.3.1):
-- Output `@timeit_decorator` (BT 2.3.2):
+- Output `benchmark(n)`:
+- Output `@timeit` giữ đúng `__name__`:
 
-## Phần 2.4 — Module & package
+## Phần 2.4 — Đóng gói package
 
-- Output `geometry.py` (chạy trực tiếp vs import):
-- Output package `shapes/`:
+- Xác nhận `pip install -e .` thành công:
+- Output `from ai_lab import compute_stats` chạy từ thư mục khác:
 
-## Phần 2.5 — Circular import
+## Phần 2.5 — Diễn tập circular import
 
-- Output lỗi `ImportError` (BT 2.5.1):
-- Xác nhận đã sửa bằng import trễ (BT 2.5.2):
+- Output lỗi `ImportError` thật:
+- Giải thích hướng phụ thuộc đúng nên sửa thế nào:
 
-## Phần 2.6 — CLI typer
+## Phần 2.6 — Hoàn thiện `ai_lab/cli.py`
 
-- Output `greet_cli.py`:
-
-## Dự án tổng hợp — package `mytools/`
-
-- Link repo package:
-- Output `mytools stats`:
+- Output `ai-lab stats --file ... --col ... --precision 2`:
 
 ```
 (dán output ở đây)
 ```
 
-- Output `python -m mytools stats` (phải khớp):
+- Output `ai-lab fib-benchmark --n 30`:
 
 ```
 (dán output ở đây)
 ```
 
-- Output khi chạy từ thư mục khác:
-
-```
-(dán output ở đây)
-```
-
-- Output `mytools fib-benchmark`:
-
-```
-(dán output ở đây)
-```
+- Output `python -m ai_lab stats --help`:
 
 ## Trả lời quiz (3 câu)
 
