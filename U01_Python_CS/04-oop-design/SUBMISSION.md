@@ -6,7 +6,7 @@
 - Hoàn thành:
 - Số giờ thực tế đã bỏ ra:
 
-## Phần 2.1 — `ai_lab/models/base.py`: `@property is_fitted`
+## Phần 2.1 — `mlkit/models/base.py`: `@property is_fitted`
 
 - Output kiểm tra `is_fitted` không có setter:
 
@@ -32,21 +32,15 @@
 
 - Output với model hợp lệ và không hợp lệ:
 
-## Phần 2.7 — Lệnh `ai-lab train`
+## Phần 2.7 — `demo_train.py`
 
-- Output `ai-lab train --model linear`:
-
-```
-(dán output ở đây)
-```
-
-- Output `ai-lab train --model dummy`:
+- Output chạy `python demo_train.py`:
 
 ```
 (dán output ở đây)
 ```
 
-- Xác nhận `run_pipeline`/`Trainer` không sửa dòng nào khi đổi `--model` (Có/Không):
+- Xác nhận `run_pipeline`/`Trainer` không sửa dòng nào khi đổi `model_type` (Có/Không):
 
 ## Trả lời quiz (3 câu)
 

@@ -5,44 +5,46 @@
 > **Tài liệu tham khảo:** Fluent Python (Ramalho) ch.11-14 · Stanford CS106B (OOP concepts) · Refactoring Guru — Design Patterns
 > **Quy ước bắt buộc:** Toàn bộ code, comment, docstring, tên biến/hàm/lớp trong bài này **100% tiếng Anh**. Phần giải thích lý thuyết bằng tiếng Việt.
 
-## Dự án xuyên suốt bài học: mở rộng `ai_lab` với lớp huấn luyện mô hình
+## Dự án của bài học: package `mlkit`
 
-Bài này **tiếp tục package `ai_lab`** đã đóng gói ở Bài 03 (không tạo project mới). Mọi bài tập đều là 1 bước thêm module OOP thật vào `ai_lab`, kết thúc bằng lệnh **`ai-lab train`** mới trong CLI đã có — không có class demo rời rạc nào bị bỏ đi.
+Bài này xây **1 project mới, độc lập** — package `mlkit`, một bộ khung huấn luyện mô hình tí hon. **Không liên quan tới `mytools` của Bài 03** — không cài đặt CLI/`pyproject.toml` (đó là kỹ năng đã học riêng), chỉ cần Python thuần + `numpy`, chạy trực tiếp bằng `python demo_train.py`. Mọi bài tập trong bài học đều là 1 bước xây dựng package thật này.
 
 ```
-ai-lab/
-└── src/ai_lab/
-    ├── stats.py, fib.py, cli.py, __init__.py, __main__.py   # (đã có từ Bài 03)
-    ├── config.py               # -> Phần 2.4 (TrainConfig)
-    ├── data/
-    │   ├── __init__.py
-    │   └── datasets.py         # -> Phần 2.3, 2.5 (Dataset Protocol, CSVDataset)
+mlkit-project/                    # thư mục mới, độc lập
+├── demo_train.py                # -> Phần 2.7 (điểm hội tụ cuối bài)
+├── sample_data.csv
+└── mlkit/
+    ├── __init__.py
+    ├── config.py                 # -> Phần 2.4 (TrainConfig)
     ├── models/
     │   ├── __init__.py
-    │   ├── base.py              # -> Phần 2.1, 2.5 (BaseModel ABC)
-    │   ├── dummy.py               # -> Phần 2.2
-    │   ├── linear.py                # -> Phần 2.2
-    │   └── registry.py                # -> Phần 2.6 (ModelType + factory)
-    └── pipeline.py                      # -> Phần 2.2, 2.7 (Trainer, run_pipeline)
+    │   ├── base.py                 # -> Phần 2.1, 2.5 (BaseModel ABC)
+    │   ├── dummy.py                  # -> Phần 2.2
+    │   ├── linear.py                   # -> Phần 2.2
+    │   └── registry.py                   # -> Phần 2.6 (ModelType + factory)
+    ├── data/
+    │   ├── __init__.py
+    │   └── datasets.py                     # -> Phần 2.3, 2.5 (Dataset Protocol, CSVDataset)
+    └── pipeline.py                            # -> Phần 2.2, 2.7 (Trainer, run_pipeline)
 ```
 
-> **Cách dùng file này:** Đọc lý thuyết từng phần → thêm đúng file/class được chỉ định vào `ai_lab/` → tick ☐ → ☑. Cuối bài, `ai-lab train` chạy được như 1 lệnh CLI thật.
+> **Cách dùng file này:** Đọc lý thuyết từng phần → tạo đúng file/class được chỉ định trong `mlkit/` → tick ☐ → ☑. Cuối bài, `python demo_train.py` chạy huấn luyện thật.
 
 ---
 
 ## 1. Mục tiêu bài học
 
 - [ ] Viết `class` đúng chuẩn, phân biệt instance vs class attribute, dùng `@property`.
-- [ ] Hiểu kế thừa, MRO, `super()`, ưu tiên composition khi phù hợp.
-- [ ] Cài đặt magic method: `__repr__`, `__eq__`, `__hash__`, `__len__`, `__call__`, `__getitem__`.
+- [ ] Hiểu kế thừa, `super()`, ưu tiên composition khi phù hợp.
+- [ ] Cài đặt magic method: `__repr__`, `__len__`, `__getitem__`.
 - [ ] Dùng `@dataclass` đúng chỗ.
 - [ ] Phân biệt ABC vs Protocol — kỹ năng thiết kế interface cho pipeline ML.
 - [ ] Nhận diện Enum, Factory, Strategy pattern.
-- [ ] **Sản phẩm:** `ai-lab train --data <csv> --target <cột> --model linear` chạy được thật, huấn luyện 1 mô hình và in kết quả.
+- [ ] **Sản phẩm:** `demo_train.py` huấn luyện được cả `LinearModel` và `DummyModel` trên cùng dữ liệu, chỉ đổi 1 tham số.
 
 ---
 
-## 2. Phần 2.1 — Class, `@property`: xây `ai_lab/models/base.py`
+## 2. Phần 2.1 — Class, `@property`: bắt đầu `mlkit/models/base.py`
 
 ### Lý thuyết
 
@@ -72,29 +74,28 @@ class Circle:
         self._radius = value
 ```
 
-Trong thiết kế thư viện ML thật (giống scikit-learn/PyTorch), mọi model đều có 1 thuộc tính **`is_fitted`** — cho biết `fit()` đã được gọi hay chưa, để `predict()` báo lỗi rõ ràng thay vì lỗi mơ hồ. Đây là ứng dụng thực tế của `@property` (computed, chỉ đọc) mà `ai_lab.models.base.BaseModel` sẽ dùng.
+Trong thư viện ML thật (giống scikit-learn/PyTorch), mọi model đều có 1 thuộc tính **`is_fitted`** — cho biết `fit()` đã được gọi hay chưa, để `predict()` báo lỗi rõ ràng thay vì lỗi mơ hồ. `mlkit.models.base.BaseModel` sẽ dùng `@property` này.
 
-### Bài tập 2.1 — Bắt đầu `ai_lab/models/base.py` với `is_fitted`
+### Bài tập 2.1 — Bắt đầu `mlkit/models/base.py` với `is_fitted`
 
-- [ ] **BT 2.1.1** — Tạo thư mục `src/ai_lab/models/` với `__init__.py` rỗng (tạm thời, sẽ điền ở Phần 2.6).
-- [ ] **BT 2.1.2** — Tạo `src/ai_lab/models/base.py`. Viết class tạm `_FittableMixin` với `self._is_fitted: bool = False` trong `__init__`, và `@property is_fitted` chỉ đọc trả về giá trị đó (chưa có `fit()`/`predict()` thật — sẽ hoàn thiện thành ABC ở Phần 2.5).
+- [ ] **BT 2.1.1** — Tạo thư mục dự án `mlkit-project/` với package con `mlkit/models/` (có `__init__.py` rỗng tạm thời, sẽ điền ở Phần 2.6).
+- [ ] **BT 2.1.2** — Tạo `mlkit/models/base.py`. Viết class tạm `_FittableMixin` với `self._is_fitted: bool = False` trong `__init__`, và `@property is_fitted` chỉ đọc trả về giá trị đó (chưa có `fit()`/`predict()` — sẽ hoàn thiện thành ABC ở Phần 2.5).
 
 <details>
 <summary><strong>Lời giải chi tiết Phần 2.1</strong></summary>
 
-**`src/ai_lab/models/base.py`** (phiên bản đầu, sẽ mở rộng thành ABC hoàn chỉnh ở Phần 2.5):
+**`mlkit/models/base.py`** (phiên bản đầu, sẽ mở rộng thành ABC hoàn chỉnh ở Phần 2.5):
 
 ```python
-"""Base building blocks for all ai_lab models."""
+"""Base building blocks for all mlkit models."""
 from __future__ import annotations
 
 
 class _FittableMixin:
     """Tracks whether a model has been fit yet, via a read-only property.
 
-    This will become part of BaseModel once we add the ABC contract
-    in Section 2.5 — kept separate here only to introduce @property
-    on its own first.
+    This will become part of BaseModel once we add the ABC contract in
+    Section 2.5 — kept separate here only to introduce @property first.
     """
 
     def __init__(self) -> None:
@@ -120,11 +121,11 @@ except AttributeError as e:
 
 ---
 
-## 3. Phần 2.2 — Kế thừa, MRO, `super()`, Composition: `models/dummy.py`, `models/linear.py`, `pipeline.py`
+## 3. Phần 2.2 — Kế thừa, `super()`, Composition: `models/dummy.py`, `models/linear.py`, `pipeline.py`
 
 ### Lý thuyết
 
-`super()` gọi phương thức lớp cha **theo đúng MRO** (Method Resolution Order — thứ tự Python tìm phương thức khi kế thừa đa cấp):
+`super()` gọi phương thức lớp cha đúng chuẩn, tránh lặp code:
 
 ```python
 class Base:
@@ -133,11 +134,11 @@ class Base:
 
 class Derived(Base):
     def __init__(self, name: str, extra: int) -> None:
-        super().__init__(name)   # gọi Base.__init__, tránh lặp code
+        super().__init__(name)   # gọi Base.__init__
         self.extra = extra
 ```
 
-**"Composition over Inheritance"** — kế thừa tạo quan hệ "is-a" chặt chẽ, composition tạo quan hệ "has-a" linh hoạt hơn. `ai_lab.pipeline.Trainer` sẽ **"has-a" model** (composition), không kế thừa model:
+**"Composition over Inheritance"** — kế thừa tạo quan hệ "is-a" chặt chẽ, composition tạo quan hệ "has-a" linh hoạt hơn. `mlkit.pipeline.Trainer` sẽ **"has-a" model** (composition), không kế thừa model:
 
 ```python
 class Trainer:
@@ -149,14 +150,14 @@ class Trainer:
 
 ### Bài tập 2.2 — `DummyModel`, `LinearModel`, `Trainer`
 
-- [ ] **BT 2.2.1** — Tạo `src/ai_lab/models/dummy.py`: class `DummyModel(_FittableMixin)` — dùng `super().__init__()` gọi đúng constructor cha. `fit(self, X, y)` lưu `self._mean_value = mean(y)` và set `self._is_fitted = True`. `predict(self, X)` trả về mảng toàn giá trị `_mean_value`.
-- [ ] **BT 2.2.2** — Tạo `src/ai_lab/models/linear.py`: class `LinearModel(_FittableMixin)` tương tự, `fit()` giải bằng normal equation (`np.linalg.pinv`), `predict()` nhân ma trận.
-- [ ] **BT 2.2.3** — Tạo `src/ai_lab/pipeline.py`: class `Trainer` — **composition**, nhận `model` bất kỳ trong constructor, có `train(self, X, y)` gọi `self.model.fit(X, y)`. Chứng minh cùng 1 `Trainer` chạy được với cả `DummyModel()` và `LinearModel()` mà không cần sửa `Trainer`.
+- [ ] **BT 2.2.1** — Tạo `mlkit/models/dummy.py`: class `DummyModel(_FittableMixin)` — dùng `super().__init__()` gọi đúng constructor cha. `fit(self, X, y)` lưu `self._mean_value = mean(y)` và set `self._is_fitted = True`. `predict(self, X)` trả về mảng toàn giá trị `_mean_value`.
+- [ ] **BT 2.2.2** — Tạo `mlkit/models/linear.py`: class `LinearModel(_FittableMixin)` tương tự, `fit()` giải bằng normal equation (`np.linalg.pinv`), `predict()` nhân ma trận.
+- [ ] **BT 2.2.3** — Tạo `mlkit/pipeline.py`: class `Trainer` — **composition**, nhận `model` bất kỳ trong constructor, có `train(self, X, y)` gọi `self.model.fit(X, y)`. Chứng minh cùng 1 `Trainer` chạy được với cả `DummyModel()` và `LinearModel()` mà không cần sửa `Trainer`.
 
 <details>
 <summary><strong>Lời giải chi tiết Phần 2.2</strong></summary>
 
-**`src/ai_lab/models/dummy.py`:**
+**`mlkit/models/dummy.py`:**
 
 ```python
 """Baseline model: always predicts the mean of y seen during fit()."""
@@ -164,12 +165,12 @@ from __future__ import annotations
 
 import numpy as np
 
-from ai_lab.models.base import _FittableMixin
+from mlkit.models.base import _FittableMixin
 
 
 class DummyModel(_FittableMixin):
     """Predicts the mean of y. Useful as a sanity-check floor that any
-    real model in ai_lab must beat."""
+    real model in mlkit must beat."""
 
     def __init__(self) -> None:
         super().__init__()   # sets self._is_fitted = False via the mixin
@@ -185,16 +186,16 @@ class DummyModel(_FittableMixin):
         return np.full(shape=(len(X),), fill_value=self._mean_value)
 ```
 
-**`src/ai_lab/models/linear.py`:**
+**`mlkit/models/linear.py`:**
 
 ```python
 """Linear regression via the closed-form normal equation, no external
-ML library dependency."""
+ML library dependency beyond numpy."""
 from __future__ import annotations
 
 import numpy as np
 
-from ai_lab.models.base import _FittableMixin
+from mlkit.models.base import _FittableMixin
 
 
 class LinearModel(_FittableMixin):
@@ -214,10 +215,10 @@ class LinearModel(_FittableMixin):
         return X_with_bias @ self._weights
 ```
 
-**`src/ai_lab/pipeline.py`** (phần `Trainer`, sẽ bổ sung `run_pipeline` ở Phần 2.7):
+**`mlkit/pipeline.py`** (phần `Trainer`, sẽ bổ sung `run_pipeline` ở Phần 2.7):
 
 ```python
-"""Training orchestration for ai_lab. Trainer uses composition, not
+"""Training orchestration for mlkit. Trainer uses composition, not
 inheritance — it works with ANY model exposing fit()/predict()."""
 from __future__ import annotations
 
@@ -239,9 +240,9 @@ class Trainer:
 
 ```python
 import numpy as np
-from ai_lab.models.dummy import DummyModel
-from ai_lab.models.linear import LinearModel
-from ai_lab.pipeline import Trainer
+from mlkit.models.dummy import DummyModel
+from mlkit.models.linear import LinearModel
+from mlkit.pipeline import Trainer
 
 X = np.array([[1], [2], [3], [4]])
 y = np.array([3.0, 5.0, 7.0, 9.0])   # y = 2x + 1
@@ -258,35 +259,32 @@ print(trainer2.model.predict(X))   # [3. 5. 7. 9.] — khớp gần như tuyệt
 
 ---
 
-## 4. Phần 2.3 — Magic Methods: `ai_lab/data/datasets.py` (`CSVDataset`)
+## 4. Phần 2.3 — Magic Methods: `mlkit/data/datasets.py` (`CSVDataset`)
 
 ### Lý thuyết
 
 ```python
-class Vector:
+class Example:
     def __repr__(self) -> str: ...        # repr(obj) — debug
-    def __eq__(self, other) -> bool: ...   # obj1 == obj2
-    def __hash__(self) -> int: ...         # hash(obj), dict key/set
     def __len__(self) -> int: ...          # len(obj)
-    def __call__(self, x): ...             # obj(...) — gọi như hàm
     def __getitem__(self, i): ...          # obj[i]
 ```
 
-`ai_lab.data.datasets.CSVDataset` cần **`__len__`** và **`__getitem__`** để tương thích chuẩn "dataset" của cả `ai_lab` lẫn PyTorch (`torch.utils.data.Dataset` dùng đúng 2 method này — sẽ gặp lại ở Unit 05). Thêm **`__repr__`** để debug dễ dàng khi in dataset ra console.
+`mlkit.data.datasets.CSVDataset` cần **`__len__`** và **`__getitem__`** để tương thích chuẩn "dataset" (đúng cấu trúc mà `torch.utils.data.Dataset` dùng — sẽ gặp lại ở Unit 05). Thêm **`__repr__`** để debug dễ dàng khi in dataset ra console.
 
 ### Bài tập 2.3 — `CSVDataset` với magic methods
 
-- [ ] **BT 2.3.1** — Tạo `src/ai_lab/data/__init__.py` (rỗng) và `src/ai_lab/data/datasets.py`. Viết class `CSVDataset` đọc `(features, target)` từ file CSV, cài `__len__` và `__getitem__`.
+- [ ] **BT 2.3.1** — Tạo `mlkit/data/__init__.py` (rỗng) và `mlkit/data/datasets.py`. Viết class `CSVDataset` đọc `(features, target)` từ file CSV, cài `__len__` và `__getitem__`.
 - [ ] **BT 2.3.2** — Thêm `__repr__` cho `CSVDataset` in ra dạng `CSVDataset(file_path='...', n_samples=N)`.
-- [ ] **BT 2.3.3** — Chứng minh `CSVDataset` dùng được với `len(dataset)`, `dataset[0]`, và vòng lặp `for features, target in dataset` (cần thêm `__iter__` đơn giản dựa trên `__getitem__`, hoặc dùng vòng `for i in range(len(dataset))`).
+- [ ] **BT 2.3.3** — Chứng minh `CSVDataset` dùng được với `len(dataset)`, `dataset[0]`, và duyệt qua toàn bộ mẫu bằng vòng lặp.
 
 <details>
 <summary><strong>Lời giải chi tiết Phần 2.3</strong></summary>
 
-**`src/ai_lab/data/datasets.py`** (phần `CSVDataset`, `Dataset` Protocol thêm ở Phần 2.5):
+**`mlkit/data/datasets.py`** (phần `CSVDataset`, `Dataset` Protocol thêm ở Phần 2.5):
 
 ```python
-"""Dataset classes for ai_lab, built around __len__/__getitem__."""
+"""Dataset classes for mlkit, built around __len__/__getitem__."""
 from __future__ import annotations
 
 import csv
@@ -315,24 +313,25 @@ class CSVDataset:
 ```
 
 ```python
-from ai_lab.data.datasets import CSVDataset
+from mlkit.data.datasets import CSVDataset
 
-with open("demo_train.csv", "w", newline="", encoding="utf-8") as f:
+with open("sample_data.csv", "w", newline="", encoding="utf-8") as f:
     f.write("x1,x2,target\n1,2,5\n2,3,8\n3,4,11\n")
 
-dataset = CSVDataset("demo_train.csv", target_column="target")
-print(dataset)               # CSVDataset(file_path='demo_train.csv', n_samples=3)
+dataset = CSVDataset("sample_data.csv", target_column="target")
+print(dataset)               # CSVDataset(file_path='sample_data.csv', n_samples=3)
 print(len(dataset))          # 3
 print(dataset[0])            # ([1.0, 2.0], 5.0)
 
-for features, target in (dataset[i] for i in range(len(dataset))):
+for i in range(len(dataset)):
+    features, target = dataset[i]
     print(features, "->", target)
 ```
 </details>
 
 ---
 
-## 5. Phần 2.4 — `@dataclass`: `ai_lab/config.py` (`TrainConfig`)
+## 5. Phần 2.4 — `@dataclass`: `mlkit/config.py` (`TrainConfig`)
 
 ### Lý thuyết
 
@@ -347,19 +346,19 @@ class TrainConfig:
 
 `@dataclass` tự sinh `__init__`, `__repr__`, `__eq__` — phù hợp cho `TrainConfig` (chủ yếu chứa dữ liệu, ít logic). `field(default_factory=list)` tránh bẫy mutable default (Bài 1.2) cho field `tags`.
 
-### Bài tập 2.4 — `ai_lab/config.py`
+### Bài tập 2.4 — `mlkit/config.py`
 
-- [ ] **BT 2.4.1** — Tạo `src/ai_lab/config.py`: `@dataclass TrainConfig` với `model_type: str = "linear"`, `precision: int = 4`, `tags: list[str] = field(default_factory=list)`.
+- [ ] **BT 2.4.1** — Tạo `mlkit/config.py`: `@dataclass TrainConfig` với `model_type: str = "linear"`, `precision: int = 4`, `tags: list[str] = field(default_factory=list)`.
 - [ ] **BT 2.4.2** — Validate bằng `__post_init__`: `precision > 0`, ném `ValueError` nếu vi phạm.
 - [ ] **BT 2.4.3** — Chứng minh 2 instance `TrainConfig()` khác nhau không chia sẻ chung `tags` (độc lập nhờ `default_factory`).
 
 <details>
 <summary><strong>Lời giải chi tiết Phần 2.4</strong></summary>
 
-**`src/ai_lab/config.py`:**
+**`mlkit/config.py`:**
 
 ```python
-"""Training configuration for ai_lab, validated on construction."""
+"""Training configuration for mlkit, validated on construction."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -367,7 +366,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class TrainConfig:
-    """Configuration for `ai-lab train`. Validated immediately so an
+    """Configuration for a training run. Validated immediately so an
     invalid config fails fast, before any training starts."""
 
     model_type: str = "linear"
@@ -380,7 +379,7 @@ class TrainConfig:
 ```
 
 ```python
-from ai_lab.config import TrainConfig
+from mlkit.config import TrainConfig
 
 TrainConfig(model_type="dummy", precision=2)   # OK
 try:
@@ -429,22 +428,22 @@ class Dataset(Protocol):
 | | ABC | Protocol |
 |---|---|---|
 | Đăng ký hợp lệ | Kế thừa tường minh | Đúng cấu trúc, không kế thừa |
-| Dùng trong `ai_lab` cho | `BaseModel` (ép buộc `DummyModel`/`LinearModel` implement đủ `fit`/`predict`) | `Dataset` (để `CSVDataset` và mọi dataset tương lai — kể cả từ PyTorch — đều hợp lệ) |
+| Dùng trong `mlkit` cho | `BaseModel` (ép buộc `DummyModel`/`LinearModel` implement đủ `fit`/`predict`) | `Dataset` (để `CSVDataset` và mọi dataset tương lai — kể cả từ PyTorch — đều hợp lệ) |
 
 ### Bài tập 2.5 — Hoàn thiện `BaseModel` (ABC) và `Dataset` (Protocol)
 
-- [ ] **BT 2.5.1** — Sửa `src/ai_lab/models/base.py`: đổi `_FittableMixin` thành `BaseModel(ABC)` với `@abstractmethod fit` và `@abstractmethod predict`, **giữ nguyên** `@property is_fitted`. Thêm concrete method `save(path)`/classmethod `load(path)` dùng `pickle` (không phải abstract — mọi model dùng chung logic này).
+- [ ] **BT 2.5.1** — Sửa `mlkit/models/base.py`: đổi `_FittableMixin` thành `BaseModel(ABC)` với `@abstractmethod fit` và `@abstractmethod predict`, **giữ nguyên** `@property is_fitted`. Thêm concrete method `save(path)`/classmethod `load(path)` dùng `pickle` (không phải abstract — mọi model dùng chung logic này).
 - [ ] **BT 2.5.2** — Sửa `DummyModel(_FittableMixin)` và `LinearModel(_FittableMixin)` (Phần 2.2) thành kế thừa `BaseModel` mới.
-- [ ] **BT 2.5.3** — Thêm `Dataset(Protocol)` vào `src/ai_lab/data/datasets.py`, đặt phía trên `CSVDataset`. Chứng minh `isinstance(csv_dataset_instance, Dataset)` trả `True` dù `CSVDataset` không kế thừa `Dataset` (dùng `@runtime_checkable`).
+- [ ] **BT 2.5.3** — Thêm `Dataset(Protocol)` vào `mlkit/data/datasets.py`, đặt phía trên `CSVDataset`. Chứng minh `isinstance(csv_dataset_instance, Dataset)` trả `True` dù `CSVDataset` không kế thừa `Dataset` (dùng `@runtime_checkable`).
 - [ ] **BT 2.5.4** — Cố tình viết 1 class con của `BaseModel` thiếu `predict`, chứng minh `TypeError` khi khởi tạo.
 
 <details>
 <summary><strong>Lời giải chi tiết Phần 2.5</strong></summary>
 
-**`src/ai_lab/models/base.py`** (bản hoàn chỉnh, thay thế `_FittableMixin`):
+**`mlkit/models/base.py`** (bản hoàn chỉnh, thay thế `_FittableMixin`):
 
 ```python
-"""Base building blocks for all ai_lab models."""
+"""Base building blocks for all mlkit models."""
 from __future__ import annotations
 
 import pickle
@@ -454,7 +453,7 @@ import numpy as np
 
 
 class BaseModel(ABC):
-    """Every concrete model in ai_lab must implement this contract, so
+    """Every concrete model in mlkit must implement this contract, so
     Trainer/pipeline code can work with any model interchangeably."""
 
     def __init__(self) -> None:
@@ -487,18 +486,18 @@ class BaseModel(ABC):
         return model
 ```
 
-**Sửa `src/ai_lab/models/dummy.py`** — chỉ đổi import và class cha:
+**Sửa `mlkit/models/dummy.py`** — chỉ đổi import và class cha:
 
 ```python
-from ai_lab.models.base import BaseModel   # thay _FittableMixin
+from mlkit.models.base import BaseModel   # thay _FittableMixin
 
 class DummyModel(BaseModel):                # thay _FittableMixin
     ...   # phần thân giữ nguyên như Phần 2.2
 ```
 
-**Sửa `src/ai_lab/models/linear.py`** tương tự — đổi `_FittableMixin` thành `BaseModel`.
+**Sửa `mlkit/models/linear.py`** tương tự — đổi `_FittableMixin` thành `BaseModel`.
 
-**Thêm `Dataset` Protocol vào `src/ai_lab/data/datasets.py`** (đặt trước class `CSVDataset`):
+**Thêm `Dataset` Protocol vào `mlkit/data/datasets.py`** (đặt trước class `CSVDataset`):
 
 ```python
 from typing import Protocol, runtime_checkable
@@ -510,9 +509,9 @@ class Dataset(Protocol):
 ```
 
 ```python
-from ai_lab.data.datasets import CSVDataset, Dataset
+from mlkit.data.datasets import CSVDataset, Dataset
 
-dataset = CSVDataset("demo_train.csv", target_column="target")
+dataset = CSVDataset("sample_data.csv", target_column="target")
 print(isinstance(dataset, Dataset))   # True — dù CSVDataset không hề kế thừa Dataset!
 print(CSVDataset.__bases__)             # (<class 'object'>,) — chứng minh không kế thừa
 ```
@@ -520,7 +519,7 @@ print(CSVDataset.__bases__)             # (<class 'object'>,) — chứng minh k
 **BT 2.5.4 — chứng minh ABC ép buộc implement:**
 
 ```python
-from ai_lab.models.base import BaseModel
+from mlkit.models.base import BaseModel
 
 class IncompleteModel(BaseModel):
     def fit(self, X, y):
@@ -538,20 +537,20 @@ except TypeError as e:
 
 ---
 
-## 7. Phần 2.6 — Enum, Factory: `ai_lab/models/registry.py`
+## 7. Phần 2.6 — Enum, Factory: `mlkit/models/registry.py`
 
 ### Lý thuyết
 
 ```python
-from enum import Enum, auto
+from enum import Enum
 
 class ModelType(Enum):
-    LINEAR = auto()
-    DUMMY = auto()
+    LINEAR = "linear"
+    DUMMY = "dummy"
 
 def create_model(model_type: ModelType) -> "BaseModel":
-    """Factory pattern — tách 'tạo model nào' khỏi nơi sử dụng (CLI).
-    Thêm model mới chỉ cần sửa factory, không cần sửa CLI."""
+    """Factory pattern — tách 'tạo model nào' khỏi nơi sử dụng.
+    Thêm model mới chỉ cần sửa factory, không cần sửa nơi gọi."""
     if model_type == ModelType.LINEAR:
         return LinearModel()
     if model_type == ModelType.DUMMY:
@@ -559,18 +558,18 @@ def create_model(model_type: ModelType) -> "BaseModel":
     raise ValueError(f"Unknown model type: {model_type}")
 ```
 
-Đây chính là cơ chế `ai-lab train --model linear` sẽ dùng ở Phần 2.7 — CLI chỉ cần biết tên chuỗi `"linear"`, không cần `import LinearModel` trực tiếp.
+Đây chính là cơ chế `demo_train.py` sẽ dùng ở Phần 2.7 — chỉ cần biết tên chuỗi `"linear"`/`"dummy"`, không cần `import LinearModel` trực tiếp ở nơi gọi.
 
-### Bài tập 2.6 — `ai_lab/models/registry.py`
+### Bài tập 2.6 — `mlkit/models/registry.py`
 
-- [ ] **BT 2.6.1** — Tạo `src/ai_lab/models/registry.py`: `ModelType` (Enum, 2 giá trị `LINEAR`/`DUMMY`) và `create_model(model_type: ModelType) -> BaseModel`.
-- [ ] **BT 2.6.2** — Thêm hàm `create_model_from_name(name: str) -> BaseModel` chuyển chuỗi (`"linear"`/`"dummy"`) sang `ModelType` rồi gọi `create_model` — đây là hàm CLI sẽ dùng trực tiếp (người dùng gõ `--model linear`, không gõ Enum).
-- [ ] **BT 2.6.3** — Cập nhật `src/ai_lab/models/__init__.py` expose `BaseModel`, `DummyModel`, `LinearModel`, `ModelType`, `create_model_from_name`.
+- [ ] **BT 2.6.1** — Tạo `mlkit/models/registry.py`: `ModelType` (Enum, 2 giá trị `LINEAR = "linear"`/`DUMMY = "dummy"`) và `create_model(model_type: ModelType) -> BaseModel`.
+- [ ] **BT 2.6.2** — Thêm hàm `create_model_from_name(name: str) -> BaseModel` chuyển chuỗi sang `ModelType` rồi gọi `create_model` — hàm này `demo_train.py` sẽ dùng trực tiếp.
+- [ ] **BT 2.6.3** — Cập nhật `mlkit/models/__init__.py` expose `BaseModel`, `DummyModel`, `LinearModel`, `ModelType`, `create_model_from_name`.
 
 <details>
 <summary><strong>Lời giải chi tiết Phần 2.6</strong></summary>
 
-**`src/ai_lab/models/registry.py`:**
+**`mlkit/models/registry.py`:**
 
 ```python
 """Model registry: maps a model name/type to a concrete BaseModel instance."""
@@ -578,9 +577,9 @@ from __future__ import annotations
 
 from enum import Enum
 
-from ai_lab.models.base import BaseModel
-from ai_lab.models.dummy import DummyModel
-from ai_lab.models.linear import LinearModel
+from mlkit.models.base import BaseModel
+from mlkit.models.dummy import DummyModel
+from mlkit.models.linear import LinearModel
 
 
 class ModelType(Enum):
@@ -589,7 +588,7 @@ class ModelType(Enum):
 
 
 def create_model(model_type: ModelType) -> BaseModel:
-    """Factory pattern — CLI code never imports DummyModel/LinearModel
+    """Factory pattern — calling code never imports DummyModel/LinearModel
     directly, only this function."""
     if model_type == ModelType.LINEAR:
         return LinearModel()
@@ -599,8 +598,8 @@ def create_model(model_type: ModelType) -> BaseModel:
 
 
 def create_model_from_name(name: str) -> BaseModel:
-    """Convert a user-facing string (e.g. from --model linear) into a
-    concrete model instance."""
+    """Convert a user-facing string (e.g. 'linear') into a concrete
+    model instance."""
     try:
         model_type = ModelType(name)
     except ValueError:
@@ -609,14 +608,14 @@ def create_model_from_name(name: str) -> BaseModel:
     return create_model(model_type)
 ```
 
-**`src/ai_lab/models/__init__.py`:**
+**`mlkit/models/__init__.py`:**
 
 ```python
-"""ai_lab.models — model base class, concrete models, and the registry."""
-from ai_lab.models.base import BaseModel
-from ai_lab.models.dummy import DummyModel
-from ai_lab.models.linear import LinearModel
-from ai_lab.models.registry import ModelType, create_model_from_name
+"""mlkit.models — model base class, concrete models, and the registry."""
+from mlkit.models.base import BaseModel
+from mlkit.models.dummy import DummyModel
+from mlkit.models.linear import LinearModel
+from mlkit.models.registry import ModelType, create_model_from_name
 
 __all__ = [
     "BaseModel",
@@ -628,10 +627,10 @@ __all__ = [
 ```
 
 ```python
-from ai_lab.models import create_model_from_name
+from mlkit.models import create_model_from_name
 
 model = create_model_from_name("linear")
-print(model)   # <ai_lab.models.linear.LinearModel object at 0x...>
+print(model)   # <mlkit.models.linear.LinearModel object at 0x...>
 
 try:
     create_model_from_name("random_forest")
@@ -642,31 +641,31 @@ except ValueError as e:
 
 ---
 
-## 8. Phần 2.7 — Hoàn thiện: lệnh `ai-lab train`
+## 8. Phần 2.7 — Hoàn thiện: `demo_train.py`
 
-Ghép **toàn bộ** Phần 2.1-2.6 (`BaseModel`, `DummyModel`/`LinearModel`, `CSVDataset`/`Dataset`, `TrainConfig`, `ModelType`/`create_model_from_name`) thành 1 lệnh CLI thật, thêm vào `ai_lab/cli.py` đã có từ Bài 03.
+Ghép **toàn bộ** Phần 2.1-2.6 (`BaseModel`, `DummyModel`/`LinearModel`, `CSVDataset`/`Dataset`, `TrainConfig`, `ModelType`/`create_model_from_name`) thành 1 script chạy được thật — điểm hội tụ cuối cùng của project `mlkit`.
 
-### Bài tập 2.7 — `run_pipeline` + lệnh `ai-lab train`
+### Bài tập 2.7 — `run_pipeline` + `demo_train.py`
 
-- [ ] **BT 2.7.1** — Hoàn thiện `src/ai_lab/pipeline.py`: thêm hàm `run_pipeline(dataset: Dataset, config: TrainConfig) -> Trainer` — tạo model qua `create_model_from_name(config.model_type)`, chuyển `dataset` sang numpy array, gọi `Trainer(model).train(X, y)`, in MSE, trả về `Trainer` đã huấn luyện.
-- [ ] **BT 2.7.2** — Thêm lệnh `train` vào `src/ai_lab/cli.py`: nhận `--data`, `--target`, `--model` (mặc định `"linear"`), `--precision`; dựng `CSVDataset` + `TrainConfig`, gọi `run_pipeline`.
-- [ ] **BT 2.7.3** — Chạy `ai-lab train --data sample_data.csv --target price --model linear` và `--model dummy` — cả 2 phải chạy đúng, **không sửa 1 dòng nào** trong `run_pipeline` hay `Trainer` giữa 2 lần chạy.
+- [ ] **BT 2.7.1** — Hoàn thiện `mlkit/pipeline.py`: thêm hàm `run_pipeline(dataset: Dataset, config: TrainConfig) -> Trainer` — tạo model qua `create_model_from_name(config.model_type)`, chuyển `dataset` sang numpy array, gọi `Trainer(model).train(X, y)`, in MSE, trả về `Trainer` đã huấn luyện.
+- [ ] **BT 2.7.2** — Viết `mlkit/__init__.py` (rỗng hoặc chỉ có docstring — package gốc không cần expose gì đặc biệt).
+- [ ] **BT 2.7.3** — Viết `demo_train.py` ở **ngoài** package `mlkit/` (cùng cấp): tạo `CSVDataset` từ `sample_data.csv`, chạy `run_pipeline` với **cả 2** `TrainConfig(model_type="linear", ...)` và `TrainConfig(model_type="dummy", ...)` — chỉ đổi 1 tham số `model_type`, **không sửa** `run_pipeline`/`Trainer`.
 
 <details>
-<summary><strong>Lời giải chi tiết Phần 2.7 — hoàn thiện package</strong></summary>
+<summary><strong>Lời giải chi tiết Phần 2.7 — hoàn thiện project</strong></summary>
 
-**`src/ai_lab/pipeline.py`** (bản đầy đủ):
+**`mlkit/pipeline.py`** (bản đầy đủ):
 
 ```python
-"""Training orchestration for ai_lab: Trainer (composition) + run_pipeline
+"""Training orchestration for mlkit: Trainer (composition) + run_pipeline
 (wires Dataset + model registry + TrainConfig together)."""
 from __future__ import annotations
 
 import numpy as np
 
-from ai_lab.config import TrainConfig
-from ai_lab.data.datasets import Dataset
-from ai_lab.models.registry import create_model_from_name
+from mlkit.config import TrainConfig
+from mlkit.data.datasets import Dataset
+from mlkit.models.registry import create_model_from_name
 
 
 class Trainer:
@@ -699,71 +698,40 @@ def run_pipeline(dataset: Dataset, config: TrainConfig) -> Trainer:
     return trainer
 ```
 
-**`src/ai_lab/cli.py`** — thêm lệnh `train` (giữ nguyên `stats`/`fib-benchmark` từ Bài 03):
+**`mlkit/__init__.py`:**
 
 ```python
-"""Typer-based command-line interface for the ai_lab package."""
-from __future__ import annotations
-
-import typer
-
-from ai_lab.config import TrainConfig
-from ai_lab.data.datasets import CSVDataset
-from ai_lab.fib import benchmark
-from ai_lab.pipeline import run_pipeline
-from ai_lab.stats import compute_stats, load_column
-
-app = typer.Typer(help="ai-lab — personal AI Engineer roadmap toolkit.")
-
-
-@app.command()
-def stats(
-    file: str = typer.Option(..., "--file"),
-    col: str = typer.Option(..., "--col"),
-    precision: int = typer.Option(4, "--precision"),
-) -> None:
-    """Compute mean, median, and stdev for a numeric column in a CSV file."""
-    values = load_column(file, col)
-    result = compute_stats(values, precision=precision)
-    typer.echo(f"count : {result.count}")
-    typer.echo(f"mean  : {result.mean}")
-    typer.echo(f"median: {result.median}")
-    typer.echo(f"stdev : {result.stdev}")
-
-
-@app.command()
-def fib_benchmark(n: int = typer.Option(32, "--n")) -> None:
-    """Compare cached vs. uncached Fibonacci runtime."""
-    benchmark(n)
-
-
-@app.command()
-def train(
-    data: str = typer.Option(..., "--data", help="Path to the training CSV file."),
-    target: str = typer.Option(..., "--target", help="Name of the target column."),
-    model: str = typer.Option("linear", "--model", help="Model type: linear or dummy."),
-    precision: int = typer.Option(4, "--precision"),
-) -> None:
-    """Train a model on a CSV dataset and print its training MSE."""
-    dataset = CSVDataset(data, target_column=target)
-    config = TrainConfig(model_type=model, precision=precision, tags=[f"cli-{model}"])
-    run_pipeline(dataset, config)
-
-
-if __name__ == "__main__":
-    app()
+"""mlkit — a tiny training pipeline toolkit for the Lesson 04 project."""
 ```
 
-**Chạy toàn bộ package đã hoàn thiện:**
+**`demo_train.py`** (ngoài package, điểm chạy chính):
+
+```python
+"""Demo script: trains two different mlkit models on the same dataset,
+proving run_pipeline() and Trainer never need to change when the model
+type changes — this is the Lesson 04 capstone."""
+from mlkit.config import TrainConfig
+from mlkit.data.datasets import CSVDataset
+from mlkit.pipeline import run_pipeline
+
+dataset = CSVDataset("sample_data.csv", target_column="target")
+
+print("=== Training with model_type='linear' ===")
+run_pipeline(dataset, TrainConfig(model_type="linear", tags=["demo-linear"]))
+
+print("\n=== Training with model_type='dummy' ===")
+run_pipeline(dataset, TrainConfig(model_type="dummy", tags=["demo-dummy"]))
+```
+
+**Chạy toàn bộ project đã hoàn thiện:**
 
 ```bash
-uv pip install -e .
-
-ai-lab train --data sample_data.csv --target price --model linear
-ai-lab train --data sample_data.csv --target price --model dummy
+cd mlkit-project
+pip install numpy   # duy nhất dependency ngoài chuẩn
+python demo_train.py
 ```
 
-> **Điều cần quan sát:** `run_pipeline()` và `Trainer` được viết **đúng 1 lần**, không hề nhắc tới `DummyModel`/`LinearModel` theo tên (chỉ qua `create_model_from_name`) — đổi `--model linear` sang `--model dummy` không sửa bất kỳ dòng code nào trong `pipeline.py`. Đây chính là nguyên lý Liskov Substitution + Dependency Injection áp dụng vào 1 CLI thật, không phải ví dụ minh hoạ.
+> **Điều cần quan sát:** `run_pipeline()` và `Trainer` được viết **đúng 1 lần**, không hề nhắc tới `DummyModel`/`LinearModel` theo tên (chỉ qua `create_model_from_name`) — đổi `model_type="linear"` sang `model_type="dummy"` không sửa bất kỳ dòng code nào trong `pipeline.py`. Đây chính là nguyên lý Liskov Substitution + Dependency Injection áp dụng vào 1 script thật, không phải ví dụ minh hoạ.
 </details>
 
 ---
@@ -776,7 +744,7 @@ ai-lab train --data sample_data.csv --target price --model dummy
 <summary><strong>Đáp án tham khảo</strong></summary>
 
 **Câu 1: Khác nhau ABC vs Protocol?**
-> ABC dùng nominal typing: lớp con phải kế thừa tường minh, kiểm tra ngay lúc khởi tạo object (`TypeError` nếu thiếu abstract method). Protocol dùng structural typing: object chỉ cần đúng cấu trúc, không cần kế thừa. `ai_lab.models.BaseModel` dùng ABC vì `ai_lab` kiểm soát toàn bộ họ model, muốn ép buộc `fit`/`predict`. `ai_lab.data.Dataset` dùng Protocol vì muốn cả `CSVDataset` lẫn dataset PyTorch sau này đều hợp lệ mà không cần sửa code của chúng.
+> ABC dùng nominal typing: lớp con phải kế thừa tường minh, kiểm tra ngay lúc khởi tạo object (`TypeError` nếu thiếu abstract method). Protocol dùng structural typing: object chỉ cần đúng cấu trúc, không cần kế thừa. `mlkit.models.BaseModel` dùng ABC vì `mlkit` kiểm soát toàn bộ họ model, muốn ép buộc `fit`/`predict`. `mlkit.data.Dataset` dùng Protocol vì muốn cả `CSVDataset` lẫn dataset PyTorch sau này đều hợp lệ mà không cần sửa code của chúng.
 
 **Câu 2: Khi nào dùng dataclass thay class thường?**
 > Khi lớp chủ yếu chứa dữ liệu, ít logic phức tạp — như `TrainConfig`. `@dataclass` tự sinh `__init__`/`__repr__`/`__eq__`. `BaseModel` (có logic `fit`/`predict`/`save`/`load` phức tạp, cần kế thừa) thì dùng class thường + ABC.
@@ -789,9 +757,9 @@ ai-lab train --data sample_data.csv --target price --model dummy
 
 ## 10. Tổng kết & bước tiếp theo
 
-- ✅ `ai_lab` giờ có `models/` (ABC + 2 model + registry), `data/` (Protocol + CSVDataset), `config.py`, `pipeline.py` — tất cả nối vào lệnh `ai-lab train` thật.
-- ✅ Không có ví dụ OOP nào (class A/B/C, Vector, BankAccount...) bị dùng rồi bỏ — mọi khái niệm được áp dụng trực tiếp vào code sống của `ai_lab`.
-- ✅ Kỹ năng ABC/Protocol/composition/factory sẽ dùng lại nguyên vẹn ở Unit 04, 05, 08, 09 khi `ai_lab` (hoặc pattern tương tự) mở rộng thành pipeline ML thật.
+- ✅ `mlkit` là 1 project OOP hoàn chỉnh, độc lập, chạy được thật bằng `python demo_train.py`.
+- ✅ Không có ví dụ OOP nào (class A/B/C, Vector, BankAccount...) bị dùng rồi bỏ — mọi khái niệm được áp dụng trực tiếp vào code sống của `mlkit`.
+- ✅ Kỹ năng ABC/Protocol/composition/factory sẽ dùng lại (dưới dạng pattern, không phải dùng lại code) ở Unit 04, 05, 08, 09 khi pipeline ML thật phức tạp hơn nhiều.
 
 **Bài tiếp theo:** U01-05 — Type hints, Pydantic v2 và cấu hình.
 
@@ -804,7 +772,7 @@ ai-lab train --data sample_data.csv --target price --model dummy
 | `BaseModel` (ABC) + `DummyModel`/`LinearModel` đúng chuẩn, `is_fitted` hoạt động | 2 |
 | `CSVDataset` đúng magic methods, thoả mãn `Dataset` Protocol không kế thừa | 2 |
 | `TrainConfig` validate đúng, `ModelType`/`create_model_from_name` đúng | 2 |
-| `ai-lab train` chạy đúng với ≥2 model, `run_pipeline` không tham chiếu class cụ thể | 3 |
+| `demo_train.py` chạy đúng với ≥2 model, `run_pipeline` không tham chiếu class cụ thể | 3 |
 | Trả lời đúng 3/3 câu quiz | 1 |
 | **Tổng** | **10** |
 

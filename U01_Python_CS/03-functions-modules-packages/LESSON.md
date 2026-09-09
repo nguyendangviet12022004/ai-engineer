@@ -5,17 +5,15 @@
 > **Tài liệu tham khảo:** Fluent Python (Ramalho) ch.7-9 · Python Docs: Modules
 > **Quy ước bắt buộc:** Toàn bộ code, comment, docstring, tên biến/hàm/lớp trong bài này **100% tiếng Anh**. Phần giải thích lý thuyết bằng tiếng Việt.
 
-## Dự án xuyên suốt bài học: đóng gói `ai_lab`
+## Dự án của bài học: package `mytools`
 
-Từ bài này, repo `ai-lab` (tạo ở Bài 01) được **chuyển thành 1 package Python cài đặt được**, tên `ai_lab`, có lệnh CLI `ai-lab`. **Mọi bài tập trong bài học này đều là 1 bước xây dựng package thật này** — không có ví dụ minh hoạ rời rạc nào bị bỏ đi. Cuối bài, bạn có 1 package hoàn chỉnh, không phải 1 "dự án tổng hợp" ghép thêm.
+Bài này xây **1 project mới, độc lập**, tên repo/package là **`mytools`** — không liên quan tới `check_env.py`/`python_core.py` của các bài trước. **Mọi bài tập trong bài học đều là 1 bước xây dựng package thật này** — không có ví dụ minh hoạ rời rạc nào bị bỏ đi. Cuối bài, bạn có 1 package hoàn chỉnh, chạy được như 1 CLI thật.
 
 ```
-ai-lab/                          # repo (đã có từ Bài 01)
+mytools/                          # repo mới, tạo ở Phần 2.4
 ├── pyproject.toml               # -> Phần 2.4
-├── check_env.py                 # (đã có từ Bài 01)
-├── python_core.py               # (đã có từ Bài 02)
 └── src/
-    └── ai_lab/
+    └── mytools/
         ├── __init__.py          # -> Phần 2.4
         ├── __main__.py          # -> Phần 2.4
         ├── stats.py             # -> Phần 2.1, 2.2
@@ -23,7 +21,7 @@ ai-lab/                          # repo (đã có từ Bài 01)
         └── cli.py                 # -> Phần 2.4, 2.6 (Phần 2.5 chỉ diễn tập lỗi, không sửa file thật)
 ```
 
-> **Cách dùng file này:** Đọc lý thuyết từng phần → làm ngay bài tập của phần đó (thêm đúng file/hàm được chỉ định vào `ai_lab/`) → tick ☐ → ☑. Cuối bài, `ai-lab` chạy được như 1 CLI thật.
+> **Cách dùng file này:** Đọc lý thuyết từng phần → làm ngay bài tập của phần đó (thêm đúng file/hàm được chỉ định vào `mytools/`) → tick ☐ → ☑. Cuối bài, `mytools` chạy được như 1 CLI thật.
 
 ---
 
@@ -35,11 +33,11 @@ ai-lab/                          # repo (đã có từ Bài 01)
 - [ ] Phân biệt module vs package, `__init__.py`, absolute vs relative import.
 - [ ] Hiểu `if __name__ == "__main__":`, viết CLI bằng `typer`.
 - [ ] Biết circular import xảy ra khi nào và cách phá vỡ.
-- [ ] **Sản phẩm:** package `ai_lab` cài bằng `pip install -e .`, lệnh `ai-lab stats`/`ai-lab fib-benchmark` chạy được từ bất kỳ thư mục nào.
+- [ ] **Sản phẩm:** package `mytools` cài bằng `pip install -e .`, lệnh `mytools stats`/`mytools fib-benchmark` chạy được từ bất kỳ thư mục nào.
 
 ---
 
-## 2. Phần 2.1 — Tham số hàm: xây `ai_lab/stats.py`
+## 2. Phần 2.1 — Tham số hàm: xây `mytools/stats.py`
 
 ### Lý thuyết
 
@@ -59,16 +57,16 @@ def describe(name, age=18, *hobbies, country="VN", **extra_info):
 
 **Vì sao cần keyword-only?** Buộc người gọi hàm ghi rõ tên tham số, tránh nhầm lẫn khi nhiều tham số cùng kiểu — cực kỳ quan trọng cho hàm thống kê có nhiều tham số số học dễ nhầm thứ tự.
 
-### Bài tập 2.1 — Viết `ai_lab/stats.py` với `compute_stats`
+### Bài tập 2.1 — Viết `mytools/stats.py` với `compute_stats`
 
-- [ ] **BT 2.1.1** — Tạo file `src/ai_lab/stats.py`. Viết hàm `load_column(file_path: str, column: str) -> list[float]` đọc 1 cột số từ file CSV (dùng module `csv`).
+- [ ] **BT 2.1.1** — Tạo file `src/mytools/stats.py`. Viết hàm `load_column(file_path: str, column: str) -> list[float]` đọc 1 cột số từ file CSV (dùng module `csv`).
 - [ ] **BT 2.1.2** — Trong cùng file, viết `compute_stats(values: list[float], *, precision: int = 4) -> ColumnStats` — `precision` **bắt buộc** truyền bằng tên (keyword-only), dùng để làm tròn kết quả. Trả về 1 `@dataclass ColumnStats(mean, median, stdev, count)` (sẽ hiểu sâu `@dataclass` ở Bài 04 — tạm dùng như 1 class chứa dữ liệu).
 - [ ] **BT 2.1.3** — Gọi thử `compute_stats(values, precision=2)` (đúng) và `compute_stats(values, 2)` (sai, không dùng tên) — ghi lại lỗi Python báo.
 
 <details>
 <summary><strong>Lời giải chi tiết Phần 2.1</strong></summary>
 
-**`src/ai_lab/stats.py`:**
+**`src/mytools/stats.py`:**
 
 ```python
 """Compute basic descriptive statistics for a numeric CSV column."""
@@ -121,7 +119,7 @@ def compute_stats(values: list[float], *, precision: int = 4) -> ColumnStats:
 ```python
 values = [10.0, 20.0, 30.0, 40.0]
 
-from ai_lab.stats import compute_stats
+from mytools.stats import compute_stats
 print(compute_stats(values, precision=2))    # OK
 
 try:
@@ -133,7 +131,7 @@ except TypeError as e:
 
 ---
 
-## 3. Phần 2.2 — Scope LEGB: thêm cache đếm lượt gọi vào `ai_lab/stats.py`
+## 3. Phần 2.2 — Scope LEGB: thêm cache đếm lượt gọi vào `mytools/stats.py`
 
 ### Lý thuyết
 
@@ -166,15 +164,15 @@ def make_counter():
 
 > **Nguyên tắc thực hành:** hạn chế `global` trong code thật — khiến hàm phụ thuộc trạng thái ẩn, khó test. Closure với `nonlocal` là cách "đóng gói trạng thái nhỏ" an toàn hơn nhiều.
 
-### Bài tập 2.2 — `ai_lab/stats.py`: đếm số lần `compute_stats` được gọi
+### Bài tập 2.2 — `mytools/stats.py`: đếm số lần `compute_stats` được gọi
 
-- [ ] **BT 2.2.1** — Trong `ai_lab/stats.py`, viết hàm `make_call_counter()` trả về 1 hàm đếm số lần gọi (dùng `nonlocal`) — đây sẽ là nền tảng cho việc log số lượt tính thống kê trong CLI.
-- [ ] **BT 2.2.2** — Tạo 1 biến module-level `_stats_call_counter = make_call_counter()` ngay trong `ai_lab/stats.py`, gọi nó bên trong `compute_stats()` mỗi lần hàm chạy. Thêm hàm `get_stats_call_count() -> int` trả về số lần đã gọi.
+- [ ] **BT 2.2.1** — Trong `mytools/stats.py`, viết hàm `make_call_counter()` trả về 1 hàm đếm số lần gọi (dùng `nonlocal`) — đây sẽ là nền tảng cho việc log số lượt tính thống kê trong CLI.
+- [ ] **BT 2.2.2** — Tạo 1 biến module-level `_stats_call_counter = make_call_counter()` ngay trong `mytools/stats.py`, gọi nó bên trong `compute_stats()` mỗi lần hàm chạy. Thêm hàm `get_stats_call_count() -> int` trả về số lần đã gọi.
 
 <details>
 <summary><strong>Lời giải chi tiết Phần 2.2</strong></summary>
 
-Thêm vào `src/ai_lab/stats.py` — sửa lại `compute_stats` để gọi bộ đếm mỗi lần chạy:
+Thêm vào `src/mytools/stats.py` — sửa lại `compute_stats` để gọi bộ đếm mỗi lần chạy:
 
 ```python
 def make_call_counter():
@@ -222,7 +220,7 @@ def get_stats_call_count() -> int:
 > **Bài học rút ra:** đây là ví dụ thực tế cho thấy vì sao đôi khi `global` vẫn cần thiết (đồng bộ 1 giá trị đọc được từ module scope), nhưng bọc logic tăng đếm chính bên trong closure (`nonlocal`) để giới hạn phạm vi trạng thái mutable — kết hợp cả 2 kỹ thuật đúng chỗ, thay vì để `_last_call_count += 1` tự do khắp nơi.
 
 ```python
-from ai_lab.stats import compute_stats, get_stats_call_count
+from mytools.stats import compute_stats, get_stats_call_count
 
 compute_stats([1.0, 2.0, 3.0])
 compute_stats([4.0, 5.0])
@@ -232,7 +230,7 @@ print(get_stats_call_count())   # 2
 
 ---
 
-## 4. Phần 2.3 — `functools.lru_cache`: xây `ai_lab/fib.py`
+## 4. Phần 2.3 — `functools.lru_cache`: xây `mytools/fib.py`
 
 ### Lý thuyết
 
@@ -251,18 +249,18 @@ def my_decorator(func):
     return wrapper
 ```
 
-`ai_lab/fib.py` sẽ là module demo trực quan cho thấy hiệu quả của `lru_cache` — dùng để giới thiệu `ai-lab` với người khác qua lệnh `ai-lab fib-benchmark`.
+`mytools/fib.py` sẽ là module demo trực quan cho thấy hiệu quả của `lru_cache` — dùng để giới thiệu `mytools` với người khác qua lệnh `mytools fib-benchmark`.
 
-### Bài tập 2.3 — Viết `ai_lab/fib.py`
+### Bài tập 2.3 — Viết `mytools/fib.py`
 
-- [ ] **BT 2.3.1** — Tạo `src/ai_lab/fib.py` với `fibonacci_uncached(n)` và `fibonacci_cached(n)` (dùng `lru_cache`).
+- [ ] **BT 2.3.1** — Tạo `src/mytools/fib.py` với `fibonacci_uncached(n)` và `fibonacci_cached(n)` (dùng `lru_cache`).
 - [ ] **BT 2.3.2** — Viết `benchmark(n=32)` đo và in thời gian chạy cả 2, cùng tỉ lệ speedup.
 - [ ] **BT 2.3.3** — Viết decorator `@timeit` (dùng `wraps`) trong cùng file, áp dụng thử lên `fibonacci_uncached` để in thời gian mỗi lần gọi — chứng minh `wrapper.__name__` vẫn đúng là `"fibonacci_uncached"` nhờ `@wraps`.
 
 <details>
 <summary><strong>Lời giải chi tiết Phần 2.3</strong></summary>
 
-**`src/ai_lab/fib.py`:**
+**`src/mytools/fib.py`:**
 
 ```python
 """Fibonacci implementations demonstrating functools.lru_cache and wraps."""
@@ -319,7 +317,7 @@ def benchmark(n: int = 32) -> None:
 ```
 
 ```python
-from ai_lab.fib import fibonacci_uncached, timeit
+from mytools.fib import fibonacci_uncached, timeit
 
 fibonacci_uncached_timed = timeit(fibonacci_uncached)
 fibonacci_uncached_timed(28)
@@ -335,12 +333,12 @@ print(fibonacci_uncached_timed.__name__)   # "fibonacci_uncached" — preserved 
 
 **Module** = 1 file `.py`. **Package** = 1 thư mục chứa nhiều module, đánh dấu bằng `__init__.py`.
 
-**`__init__.py`** dùng để: (1) đánh dấu thư mục là package, (2) expose API công khai (`from ai_lab import compute_stats` thay vì `from ai_lab.stats import compute_stats`).
+**`__init__.py`** dùng để: (1) đánh dấu thư mục là package, (2) expose API công khai (`from mytools import compute_stats` thay vì `from mytools.stats import compute_stats`).
 
 **Absolute vs relative import:**
 
 ```python
-from ai_lab.stats import compute_stats     # absolute — luôn dùng trong lộ trình này
+from mytools.stats import compute_stats     # absolute — luôn dùng trong lộ trình này
 from .stats import compute_stats            # relative — chỉ dùng bên trong package
 ```
 
@@ -348,13 +346,13 @@ from .stats import compute_stats            # relative — chỉ dùng bên tron
 
 **`if __name__ == "__main__":`** — chỉ chạy khi file được thực thi trực tiếp. **`__main__.py`** — file đặc biệt, chạy khi gõ `python -m <package>`.
 
-### Bài tập 2.4 — Biến `ai-lab` thành package cài đặt được
+### Bài tập 2.4 — Biến `mytools` thành package cài đặt được
 
-- [ ] **BT 2.4.1** — Di chuyển `src/ai_lab/stats.py` và `src/ai_lab/fib.py` (đã viết ở Phần 2.1-2.3) vào đúng vị trí src-layout: `src/ai_lab/`.
-- [ ] **BT 2.4.2** — Viết `src/ai_lab/__init__.py`, dùng **absolute import** expose `compute_stats`, `load_column` ra cấp package.
-- [ ] **BT 2.4.3** — Viết `src/ai_lab/__main__.py` cho phép chạy `python -m ai_lab`.
-- [ ] **BT 2.4.4** — Viết `pyproject.toml` ở gốc repo `ai-lab` (src-layout, entry point `ai-lab`).
-- [ ] **BT 2.4.5** — Cài bằng `uv pip install -e .`. Chứng minh `from ai_lab import compute_stats` chạy được từ **bất kỳ thư mục nào** trên máy (không phải chỉ trong `ai-lab/`).
+- [ ] **BT 2.4.1** — Di chuyển `src/mytools/stats.py` và `src/mytools/fib.py` (đã viết ở Phần 2.1-2.3) vào đúng vị trí src-layout: `src/mytools/`.
+- [ ] **BT 2.4.2** — Viết `src/mytools/__init__.py`, dùng **absolute import** expose `compute_stats`, `load_column` ra cấp package.
+- [ ] **BT 2.4.3** — Viết `src/mytools/__main__.py` cho phép chạy `python -m mytools`.
+- [ ] **BT 2.4.4** — Viết `pyproject.toml` ở gốc repo `mytools` (src-layout, entry point `mytools`).
+- [ ] **BT 2.4.5** — Cài bằng `uv pip install -e .`. Chứng minh `from mytools import compute_stats` chạy được từ **bất kỳ thư mục nào** trên máy (không phải chỉ trong `mytools/`).
 
 <details>
 <summary><strong>Lời giải chi tiết Phần 2.4</strong></summary>
@@ -362,12 +360,12 @@ from .stats import compute_stats            # relative — chỉ dùng bên tron
 **Cấu trúc cuối cùng:**
 
 ```
-ai-lab/
+mytools/
 ├── pyproject.toml
 ├── check_env.py          # từ Bài 01, vẫn ở gốc repo, không thuộc package
 ├── python_core.py         # từ Bài 02, vẫn ở gốc repo, không thuộc package
 └── src/
-    └── ai_lab/
+    └── mytools/
         ├── __init__.py
         ├── __main__.py
         ├── stats.py        # Phần 2.1 + 2.2
@@ -379,7 +377,7 @@ ai-lab/
 
 ```toml
 [project]
-name = "ai-lab"
+name = "mytools"
 version = "0.1.0"
 description = "Personal AI Engineer roadmap toolkit — grows with every lesson."
 requires-python = ">=3.11"
@@ -388,35 +386,35 @@ dependencies = [
 ]
 
 [project.scripts]
-ai-lab = "ai_lab.cli:app"
+mytools = "mytools.cli:app"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/ai_lab"]
+packages = ["src/mytools"]
 ```
 
-**`src/ai_lab/__init__.py`:**
+**`src/mytools/__init__.py`:**
 
 ```python
-"""ai_lab — personal AI Engineer roadmap toolkit.
+"""mytools — personal AI Engineer roadmap toolkit.
 
 Grows one module per lesson: stats (U01-03), models/data/pipeline (U01-04),
 and onward through the rest of the 52-week roadmap.
 """
-from ai_lab.stats import ColumnStats, compute_stats, load_column
+from mytools.stats import ColumnStats, compute_stats, load_column
 
 __all__ = ["ColumnStats", "compute_stats", "load_column"]
 __version__ = "0.1.0"
 ```
 
-**`src/ai_lab/__main__.py`:**
+**`src/mytools/__main__.py`:**
 
 ```python
-"""Enables `python -m ai_lab ...` as an alternative to the installed `ai-lab` command."""
-from ai_lab.cli import app
+"""Enables `python -m mytools ...` as an alternative to the installed `mytools` command."""
+from mytools.cli import app
 
 if __name__ == "__main__":
     app()
@@ -425,12 +423,12 @@ if __name__ == "__main__":
 **Cài đặt và kiểm chứng:**
 
 ```bash
-cd ai-lab
+cd mytools
 uv pip install -e .
 
 # Từ thư mục hoàn toàn khác:
 cd /tmp
-python -c "from ai_lab import compute_stats; print(compute_stats([1.0, 2.0, 3.0], precision=2))"
+python -c "from mytools import compute_stats; print(compute_stats([1.0, 2.0, 3.0], precision=2))"
 ```
 </details>
 
@@ -442,12 +440,12 @@ python -c "from ai_lab import compute_stats; print(compute_stats([1.0, 2.0, 3.0]
 
 Xảy ra khi module A import module B, và B (trực tiếp/gián tiếp) lại import A. **3 cách phá vỡ:** (1) tái cấu trúc — đưa phần dùng chung ra module thứ 3, (2) import trễ — chuyển `import` xuống trong hàm, (3) import cả module thay vì `from ... import tên`.
 
-> Bài tập này **cố ý gây lỗi** trong 2 file tạm — không sửa vào `ai_lab/` thật, vì mục đích là quan sát cơ chế lỗi, không phải giữ lại code lỗi.
+> Bài tập này **cố ý gây lỗi** trong 2 file tạm — không sửa vào `mytools/` thật, vì mục đích là quan sát cơ chế lỗi, không phải giữ lại code lỗi.
 
-### Bài tập 2.5 — Tự tái tạo circular import bằng chính 2 module thật của `ai_lab`
+### Bài tập 2.5 — Tự tái tạo circular import bằng chính 2 module thật của `mytools`
 
-- [ ] **BT 2.5.1** — Tạo 1 bản sao tạm của `ai_lab/stats.py` và `ai_lab/cli.py` (đặt tên `stats_buggy.py`/`cli_buggy.py` trong thư mục `scratch/`, **ngoài** package thật) — cho `stats_buggy.py` thêm dòng `from cli_buggy import app` ở đầu file (giả lập tình huống bạn lỡ tay làm `stats.py` phụ thuộc ngược vào `cli.py`), và `cli_buggy.py` có `from stats_buggy import compute_stats` ở đầu. Chạy và ghi lại `ImportError` chính xác.
-- [ ] **BT 2.5.2** — Giải thích bằng lời: nếu lỡ viết đúng tình huống này vào `ai_lab/` thật, bạn sẽ sửa bằng cách nào trong 3 cách đã học — và vì sao (gợi ý: `cli.py` phụ thuộc `stats.py` là hướng phụ thuộc đúng, nên hướng cần phá vỡ là chiều ngược lại).
+- [ ] **BT 2.5.1** — Tạo 1 bản sao tạm của `mytools/stats.py` và `mytools/cli.py` (đặt tên `stats_buggy.py`/`cli_buggy.py` trong thư mục `scratch/`, **ngoài** package thật) — cho `stats_buggy.py` thêm dòng `from cli_buggy import app` ở đầu file (giả lập tình huống bạn lỡ tay làm `stats.py` phụ thuộc ngược vào `cli.py`), và `cli_buggy.py` có `from stats_buggy import compute_stats` ở đầu. Chạy và ghi lại `ImportError` chính xác.
+- [ ] **BT 2.5.2** — Giải thích bằng lời: nếu lỡ viết đúng tình huống này vào `mytools/` thật, bạn sẽ sửa bằng cách nào trong 3 cách đã học — và vì sao (gợi ý: `cli.py` phụ thuộc `stats.py` là hướng phụ thuộc đúng, nên hướng cần phá vỡ là chiều ngược lại).
 
 <details>
 <summary><strong>Lời giải chi tiết Phần 2.5</strong></summary>
@@ -475,12 +473,12 @@ ImportError: cannot import name 'app' from partially initialized module 'cli_bug
 (most likely due to a circular import) (.../scratch/cli_buggy.py)
 ```
 
-**Giải thích (BT 2.5.2):** Trong kiến trúc `ai_lab` thật, `cli.py` **nên** phụ thuộc `stats.py` (CLI gọi vào logic nghiệp vụ), không bao giờ nên có chiều ngược lại. Nếu phát hiện `stats.py` cần thứ gì đó từ `cli.py`, đó là dấu hiệu thiết kế sai — nên **tái cấu trúc** (cách 1): đưa phần dùng chung đó ra 1 module thứ 3 (ví dụ `ai_lab/types.py` chứa các kiểu dữ liệu chung), thay vì dùng import trễ để "chữa cháy" — vì import trễ chỉ che giấu vấn đề kiến trúc, không giải quyết tận gốc.
+**Giải thích (BT 2.5.2):** Trong kiến trúc `mytools` thật, `cli.py` **nên** phụ thuộc `stats.py` (CLI gọi vào logic nghiệp vụ), không bao giờ nên có chiều ngược lại. Nếu phát hiện `stats.py` cần thứ gì đó từ `cli.py`, đó là dấu hiệu thiết kế sai — nên **tái cấu trúc** (cách 1): đưa phần dùng chung đó ra 1 module thứ 3 (ví dụ `mytools/types.py` chứa các kiểu dữ liệu chung), thay vì dùng import trễ để "chữa cháy" — vì import trễ chỉ che giấu vấn đề kiến trúc, không giải quyết tận gốc.
 </details>
 
 ---
 
-## 7. Phần 2.6 — CLI với `typer`: hoàn thiện `ai_lab/cli.py`
+## 7. Phần 2.6 — CLI với `typer`: hoàn thiện `mytools/cli.py`
 
 ### Lý thuyết
 
@@ -497,29 +495,29 @@ if __name__ == "__main__":
     app()
 ```
 
-`typer` tự sinh `--help`, kiểm tra kiểu dữ liệu dựa trên type hint. **Lưu ý quan trọng đã kiểm chứng thực tế:** khi `Typer()` app chỉ có **1 lệnh duy nhất**, gọi CLI **không cần** gõ tên lệnh (`ai-lab --file ... --col ...`). Khi có **từ 2 lệnh trở lên**, **phải** gõ tên lệnh (`ai-lab stats --file ...`). `ai_lab/cli.py` sẽ có 2 lệnh ngay từ đầu nên luôn cần gõ tên lệnh.
+`typer` tự sinh `--help`, kiểm tra kiểu dữ liệu dựa trên type hint. **Lưu ý quan trọng đã kiểm chứng thực tế:** khi `Typer()` app chỉ có **1 lệnh duy nhất**, gọi CLI **không cần** gõ tên lệnh (`mytools --file ... --col ...`). Khi có **từ 2 lệnh trở lên**, **phải** gõ tên lệnh (`mytools stats --file ...`). `mytools/cli.py` sẽ có 2 lệnh ngay từ đầu nên luôn cần gõ tên lệnh.
 
-### Bài tập 2.6 — Hoàn thiện `ai_lab/cli.py`
+### Bài tập 2.6 — Hoàn thiện `mytools/cli.py`
 
-- [ ] **BT 2.6.1** — Viết `src/ai_lab/cli.py`: import `compute_stats`/`load_column` từ `ai_lab.stats` (absolute import — Phần 2.4) và `benchmark` từ `ai_lab.fib` (Phần 2.3). Định nghĩa 2 lệnh: `stats` (dùng `precision` keyword-only từ Phần 2.1) và `fib-benchmark`.
-- [ ] **BT 2.6.2** — Chạy `ai-lab stats --file <csv> --col <cột> --precision 2` và `ai-lab fib-benchmark --n 30` — cả 2 phải hoạt động.
-- [ ] **BT 2.6.3** — Chạy `ai-lab --help` và `python -m ai_lab stats --help`, xác nhận cả 2 cách chạy đều hiển thị đúng danh sách lệnh.
+- [ ] **BT 2.6.1** — Viết `src/mytools/cli.py`: import `compute_stats`/`load_column` từ `mytools.stats` (absolute import — Phần 2.4) và `benchmark` từ `mytools.fib` (Phần 2.3). Định nghĩa 2 lệnh: `stats` (dùng `precision` keyword-only từ Phần 2.1) và `fib-benchmark`.
+- [ ] **BT 2.6.2** — Chạy `mytools stats --file <csv> --col <cột> --precision 2` và `mytools fib-benchmark --n 30` — cả 2 phải hoạt động.
+- [ ] **BT 2.6.3** — Chạy `mytools --help` và `python -m mytools stats --help`, xác nhận cả 2 cách chạy đều hiển thị đúng danh sách lệnh.
 
 <details>
 <summary><strong>Lời giải chi tiết Phần 2.6 — hoàn thiện package</strong></summary>
 
-**`src/ai_lab/cli.py`** (điểm hội tụ của toàn bộ Phần 2.1-2.4):
+**`src/mytools/cli.py`** (điểm hội tụ của toàn bộ Phần 2.1-2.4):
 
 ```python
-"""Typer-based command-line interface for the ai_lab package."""
+"""Typer-based command-line interface for the mytools package."""
 from __future__ import annotations
 
 import typer
 
-from ai_lab.fib import benchmark
-from ai_lab.stats import compute_stats, load_column
+from mytools.fib import benchmark
+from mytools.stats import compute_stats, load_column
 
-app = typer.Typer(help="ai-lab — personal AI Engineer roadmap toolkit.")
+app = typer.Typer(help="mytools — personal AI Engineer roadmap toolkit.")
 
 
 @app.command()
@@ -552,10 +550,10 @@ if __name__ == "__main__":
 ```bash
 uv pip install -e .
 
-ai-lab stats --file sample_data.csv --col price --precision 2
-ai-lab fib-benchmark --n 30
-python -m ai_lab stats --file sample_data.csv --col price
-ai-lab --help
+mytools stats --file sample_data.csv --col price --precision 2
+mytools fib-benchmark --n 30
+python -m mytools stats --file sample_data.csv --col price
+mytools --help
 ```
 
 **Kết quả đo thật khi soạn bài này:** `fibonacci(30)` cached nhanh hơn uncached khoảng **4,400x** (số liệu thực tế đo được, khác nhau tuỳ máy — quan trọng là cached luôn nhanh hơn hàng nghìn lần).
@@ -584,9 +582,9 @@ ai-lab --help
 
 ## 9. Tổng kết & bước tiếp theo
 
-- ✅ `ai_lab` giờ là 1 package cài đặt được thật, có CLI 2 lệnh, chạy từ bất kỳ đâu.
-- ✅ Mọi khái niệm (tham số hàm, LEGB, `lru_cache`, module/package, import) đều nằm trong code thật của `ai_lab`, không có ví dụ minh hoạ nào bị bỏ đi.
-- ✅ Bài 04 sẽ tiếp tục mở rộng **chính package này** với các module OOP (`models/`, `data/`, `config.py`, `pipeline.py`) và thêm lệnh `ai-lab train`.
+- ✅ `mytools` là 1 package cài đặt được thật, có CLI 2 lệnh, chạy từ bất kỳ đâu.
+- ✅ Mọi khái niệm (tham số hàm, LEGB, `lru_cache`, module/package, import) đều nằm trong code thật của `mytools`, không có ví dụ minh hoạ nào bị bỏ đi.
+- ✅ Bài 04 sẽ có 1 project OOP hoàn toàn mới (`mlkit`) — kỹ năng đóng gói học ở đây áp dụng lại được, nhưng code không dùng chung.
 
 **Bài tiếp theo:** U01-04 — OOP và thiết kế lớp trong Python.
 
@@ -596,10 +594,10 @@ ai-lab --help
 
 | Tiêu chí | Điểm tối đa |
 |---|---|
-| `ai_lab/stats.py` đúng (keyword-only `precision`, closure đếm lượt gọi) | 2 |
-| `ai_lab/fib.py` đúng (`lru_cache`, `@timeit` giữ đúng `__name__`) | 2 |
+| `mytools/stats.py` đúng (keyword-only `precision`, closure đếm lượt gọi) | 2 |
+| `mytools/fib.py` đúng (`lru_cache`, `@timeit` giữ đúng `__name__`) | 2 |
 | Package cài đặt đúng bằng `pip install -e .`, đúng src-layout | 2 |
-| CLI `ai-lab stats`/`ai-lab fib-benchmark` chạy đúng, cả entry point lẫn `python -m ai_lab`, chạy từ thư mục khác | 2 |
+| CLI `mytools stats`/`mytools fib-benchmark` chạy đúng, cả entry point lẫn `python -m mytools`, chạy từ thư mục khác | 2 |
 | Diễn tập circular import đúng, giải thích hướng phụ thuộc hợp lý | 1 |
 | Trả lời đúng 3/3 câu quiz | 1 |
 | **Tổng** | **10** |
