@@ -3,27 +3,26 @@
 > **Unit:** U01 — Python & Nền tảng CS cho AI Engineer
 > **Tuần:** 1 · **Giờ dự kiến:** 6 · **Độ khó:** TB
 > **Tài liệu tham khảo:** Fluent Python (Ramalho) ch.7-9 · Python Docs: Modules
-> **Quy ước bắt buộc:** Toàn bộ code, comment, docstring, tên biến/hàm trong bài này **100% tiếng Anh**. Phần giải thích lý thuyết bằng tiếng Việt.
+> **Quy ước bắt buộc:** Toàn bộ code, comment, docstring, tên biến/hàm/lớp trong bài này **100% tiếng Anh**. Phần giải thích lý thuyết bằng tiếng Việt.
+> **Cách dùng file này:** Đọc lý thuyết từng phần → làm ngay bài tập của phần đó (tick ☐ → ☑) → cuối bài có 1 dự án tổng hợp dùng lại mọi thứ đã làm.
 
 ---
 
 ## 1. Mục tiêu bài học
 
-Sau bài này bạn phải:
-
-1. Dùng thành thạo mọi kiểu tham số hàm: positional, keyword, `*args`, `**kwargs`, keyword-only.
-2. Hiểu rõ quy tắc scope LEGB và phân biệt được khi nào cần `global`/`nonlocal`.
-3. Biết Python coi hàm là "công dân hạng nhất" (first-class function) — truyền hàm như 1 giá trị, dùng `map`/`filter`/`functools.reduce`, và các decorator hữu ích trong `functools`.
-4. Phân biệt module vs package, `__init__.py` dùng để làm gì, absolute vs relative import.
-5. Hiểu `if __name__ == "__main__":` và viết được CLI bằng `typer`.
-6. Biết circular import xảy ra khi nào và 3 cách phá vỡ nó.
-7. Đóng gói được `mytools/` — 1 package cài bằng `pip install -e .`, chạy CLI bằng `python -m mytools`, **không cần sửa `sys.path`** khi chuyển sang máy khác.
+- [ ] Dùng thành thạo mọi kiểu tham số hàm: positional, keyword, `*args`, `**kwargs`, keyword-only.
+- [ ] Hiểu quy tắc scope LEGB, phân biệt khi nào cần `global`/`nonlocal`.
+- [ ] Dùng `map`/`filter`/`functools.reduce` và các decorator hữu ích trong `functools`.
+- [ ] Phân biệt module vs package, `__init__.py`, absolute vs relative import.
+- [ ] Hiểu `if __name__ == "__main__":`, viết CLI bằng `typer`.
+- [ ] Biết circular import xảy ra khi nào và cách phá vỡ.
+- [ ] Đóng gói `mytools/` — cài bằng `pip install -e .`, chạy CLI `python -m mytools`, không cần sửa `sys.path`.
 
 ---
 
-## 2. Lý thuyết
+## 2. Phần 2.1 — Các kiểu tham số hàm
 
-### 2.1. Các kiểu tham số hàm
+### Lý thuyết
 
 ```python
 def describe(name, age=18, *hobbies, country="VN", **extra_info):
@@ -35,42 +34,70 @@ def describe(name, age=18, *hobbies, country="VN", **extra_info):
 |---|---|---|
 | Positional | `def f(a, b)` | `f(1, 2)` |
 | Positional có default | `def f(a, b=10)` | `f(1)` hoặc `f(1, 2)` |
-| Var-positional (`*args`) | `def f(*args)` | `f(1, 2, 3)` → `args = (1, 2, 3)` |
-| Keyword-only | `def f(*, a)` | `f(a=1)` — **bắt buộc** truyền bằng tên, `f(1)` sẽ lỗi |
-| Var-keyword (`**kwargs`) | `def f(**kwargs)` | `f(x=1, y=2)` → `kwargs = {"x": 1, "y": 2}` |
+| Var-positional | `def f(*args)` | `f(1, 2, 3)` → `args = (1, 2, 3)` |
+| Keyword-only | `def f(*, a)` | `f(a=1)` — bắt buộc dùng tên |
+| Var-keyword | `def f(**kwargs)` | `f(x=1, y=2)` → `kwargs = {"x": 1, "y": 2}` |
 
-**Vì sao cần keyword-only?** Buộc người gọi hàm phải ghi rõ tên tham số, tránh nhầm lẫn thứ tự khi hàm có nhiều tham số cùng kiểu dữ liệu:
+**Vì sao cần keyword-only?** Buộc người gọi hàm ghi rõ tên tham số, tránh nhầm lẫn khi nhiều tham số cùng kiểu:
 
 ```python
 def create_user(name, *, is_admin=False, is_active=True):
     ...
 
-create_user("Alice", is_admin=True)      # rõ ràng
-# create_user("Alice", True)              # nếu is_admin không phải keyword-only,
-                                           # dễ nhầm True là is_active hay is_admin
+create_user("Alice", is_admin=True)      # rõ ràng, không thể nhầm thứ tự
 ```
 
-**Mutable default argument** (đã học ở Bài 1.2) áp dụng y hệt cho mọi tham số có default là `list`/`dict`/`set` — luôn dùng `None` rồi khởi tạo bên trong hàm.
+### Bài tập 2.1 — Thiết kế hàm với keyword-only
 
-### 2.2. Scope LEGB
+- [ ] **BT 2.1.1** — Viết hàm `train_model(X, y, *, learning_rate=0.01, epochs=10, verbose=False)` — bắt buộc `learning_rate`/`epochs`/`verbose` phải truyền bằng tên. Gọi thử đúng và gọi sai (không dùng tên) để thấy lỗi.
+- [ ] **BT 2.1.2** — Viết hàm `summarize(*numbers, **options)` in ra tổng, trung bình của `numbers`, và in thêm mọi cặp key=value trong `options`.
 
-Khi Python tra cứu tên 1 biến, nó tìm theo thứ tự **LEGB**:
+<details>
+<summary><strong>Lời giải chi tiết BT 2.1</strong></summary>
 
-1. **L**ocal — bên trong hàm hiện tại.
-2. **E**nclosing — bên trong hàm cha (nếu đây là hàm lồng nhau/closure).
-3. **G**lobal — cấp module (toàn bộ file).
-4. **B**uilt-in — các tên có sẵn của Python (`len`, `print`, `range`...).
+```python
+def train_model(X, y, *, learning_rate=0.01, epochs=10, verbose=False):
+    """Dummy training stub demonstrating keyword-only parameters."""
+    if verbose:
+        print(f"Training with lr={learning_rate}, epochs={epochs}")
+    return {"lr": learning_rate, "epochs": epochs}
+
+train_model([1, 2], [3, 4], learning_rate=0.05, epochs=20, verbose=True)  # OK
+
+try:
+    train_model([1, 2], [3, 4], 0.05, 20, True)   # TypeError: too many positional args
+except TypeError as e:
+    print("Error:", e)
+
+
+def summarize(*numbers: float, **options: str) -> None:
+    """Print total/average of positional numbers plus any keyword options."""
+    total = sum(numbers)
+    average = total / len(numbers) if numbers else 0
+    print(f"total={total}, average={average}")
+    for key, value in options.items():
+        print(f"  option {key} = {value}")
+
+summarize(1, 2, 3, 4, unit="kg", source="sensor_a")
+```
+</details>
+
+---
+
+## 3. Phần 2.2 — Scope LEGB
+
+### Lý thuyết
+
+Python tra cứu tên biến theo thứ tự **LEGB**: **L**ocal → **E**nclosing → **G**lobal → **B**uilt-in.
 
 ```python
 x = "global"
 
 def outer():
     x = "enclosing"
-
     def inner():
         x = "local"
-        print(x)   # "local" — tìm thấy ngay ở Local, dừng tra cứu
-
+        print(x)   # "local"
     inner()
     print(x)       # "enclosing"
 
@@ -78,140 +105,327 @@ outer()
 print(x)           # "global"
 ```
 
-**`global` và `nonlocal`** dùng khi bạn muốn **gán lại** (không chỉ đọc) một biến ở scope ngoài:
+`global`/`nonlocal` dùng khi muốn **gán lại** (không chỉ đọc) biến ở scope ngoài:
 
 ```python
-counter = 0
-
-def increment():
-    global counter          # không có dòng này, Python sẽ tạo biến LOCAL mới tên counter
-    counter += 1             # thay vì sửa biến global
-
 def make_counter():
     count = 0
     def increment():
-        nonlocal count      # tương tự global, nhưng cho biến ở Enclosing scope
+        nonlocal count
         count += 1
         return count
     return increment
 ```
 
-> **Nguyên tắc thực hành:** hạn chế tối đa dùng `global` trong code thật — nó khiến hàm phụ thuộc vào trạng thái ẩn bên ngoài, rất khó test và dễ gây bug khi code lớn dần. Trong 52 tuần tới, bạn sẽ thấy cách thay thế bằng class hoặc truyền tham số tường minh.
+> **Nguyên tắc thực hành:** hạn chế `global` trong code thật — khiến hàm phụ thuộc trạng thái ẩn, khó test.
 
-### 2.3. First-class Function
+### Bài tập 2.2 — Closure với `nonlocal`
 
-Ở Python, hàm là 1 **giá trị** như mọi giá trị khác — có thể gán cho biến, truyền làm tham số, trả về từ hàm khác.
+- [ ] **BT 2.2.1** — Viết `make_counter()` như trên, tạo 2 counter độc lập, chứng minh chúng không ảnh hưởng lẫn nhau.
+- [ ] **BT 2.2.2** — Viết hàm `make_accumulator(start=0)` trả về 1 hàm `add(x)` cộng dồn vào `start` mỗi lần gọi, dùng `nonlocal`.
+
+<details>
+<summary><strong>Lời giải chi tiết BT 2.2</strong></summary>
 
 ```python
-def square(x):
-    return x ** 2
+def make_counter():
+    count = 0
+    def increment():
+        nonlocal count
+        count += 1
+        return count
+    return increment
 
-operation = square          # gán hàm cho biến, không gọi (không có dấu ngoặc)
-print(operation(5))         # 25
+counter_a = make_counter()
+counter_b = make_counter()
+print(counter_a(), counter_a(), counter_a())   # 1 2 3
+print(counter_b())                              # 1 — độc lập với counter_a
 
-numbers = [1, 2, 3, 4]
-list(map(square, numbers))              # [1, 4, 9, 16]
-list(filter(lambda x: x % 2 == 0, numbers))  # [2, 4]
+
+def make_accumulator(start: int = 0):
+    total = start
+    def add(x: int) -> int:
+        nonlocal total
+        total += x
+        return total
+    return add
+
+acc = make_accumulator(100)
+print(acc(10))   # 110
+print(acc(5))    # 115
+```
+</details>
+
+---
+
+## 4. Phần 2.3 — First-class Function và `functools`
+
+### Lý thuyết
+
+Hàm là 1 giá trị — gán cho biến, truyền làm tham số, trả về từ hàm khác.
+
+```python
+def square(x): return x ** 2
+operation = square
+list(map(square, [1, 2, 3, 4]))              # [1, 4, 9, 16]
+list(filter(lambda x: x % 2 == 0, [1, 2, 3, 4]))  # [2, 4]
 
 from functools import reduce
-reduce(lambda acc, x: acc + x, numbers, 0)   # 10 — tổng dồn
+reduce(lambda acc, x: acc + x, [1, 2, 3, 4], 0)   # 10
 ```
 
-**`functools` — 3 công cụ quan trọng nhất:**
+**3 công cụ quan trọng của `functools`:**
 
 ```python
 from functools import lru_cache, partial, wraps
 
-# 1. lru_cache: nhớ (memoize) kết quả hàm theo tham số đầu vào — tăng tốc hàm đệ quy/tốn kém
 @lru_cache(maxsize=None)
 def fibonacci(n):
-    if n < 2:
-        return n
+    if n < 2: return n
     return fibonacci(n - 1) + fibonacci(n - 2)
 
-# 2. partial: "đóng băng" trước 1 số tham số, tạo hàm mới ít tham số hơn
-def power(base, exponent):
-    return base ** exponent
-
+def power(base, exponent): return base ** exponent
 square = partial(power, exponent=2)
-square(5)   # 25
 
-# 3. wraps: giữ nguyên __name__/__doc__ của hàm gốc khi viết decorator
 def my_decorator(func):
-    @wraps(func)   # thiếu dòng này, help(decorated_func) sẽ hiện sai tên/docstring
+    @wraps(func)   # giữ __name__/__doc__ của hàm gốc
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs)
     return wrapper
 ```
 
-### 2.4. Module vs Package
+### Bài tập 2.3 — `lru_cache` và benchmark
 
-- **Module** = 1 file `.py` bất kỳ. `import mymodule` sẽ chạy toàn bộ file `mymodule.py` 1 lần và cho bạn truy cập vào các tên bên trong.
-- **Package** = 1 thư mục chứa nhiều module, có (hoặc trước Python 3.3 bắt buộc phải có) file `__init__.py` để đánh dấu đây là 1 package.
+- [ ] **BT 2.3.1** — Viết `fibonacci_uncached` và `fibonacci_cached` (dùng `lru_cache`). Đo thời gian chạy `fibonacci(32)` ở cả 2, so sánh bằng số liệu thật.
+- [ ] **BT 2.3.2** — Viết decorator `@timeit` (dùng `wraps`) in ra thời gian chạy của bất kỳ hàm nào nó bọc.
+
+<details>
+<summary><strong>Lời giải chi tiết BT 2.3</strong></summary>
+
+```python
+import time
+from functools import lru_cache, wraps
+
+
+def fibonacci_uncached(n: int) -> int:
+    if n < 2:
+        return n
+    return fibonacci_uncached(n - 1) + fibonacci_uncached(n - 2)
+
+
+@lru_cache(maxsize=None)
+def fibonacci_cached(n: int) -> int:
+    if n < 2:
+        return n
+    return fibonacci_cached(n - 1) + fibonacci_cached(n - 2)
+
+
+def benchmark(n: int = 32) -> None:
+    start = time.perf_counter()
+    result_uncached = fibonacci_uncached(n)
+    time_uncached = time.perf_counter() - start
+
+    fibonacci_cached.cache_clear()
+    start = time.perf_counter()
+    result_cached = fibonacci_cached(n)
+    time_cached = time.perf_counter() - start
+
+    assert result_uncached == result_cached
+    print(f"fibonacci({n}) = {result_uncached}")
+    print(f"Uncached: {time_uncached:.4f}s")
+    print(f"Cached  : {time_cached:.6f}s")
+    print(f"Speedup : {time_uncached / max(time_cached, 1e-9):.0f}x")
+
+
+def timeit_decorator(func):
+    """Print how long the wrapped function took to run."""
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start = time.perf_counter()
+        result = func(*args, **kwargs)
+        elapsed = time.perf_counter() - start
+        print(f"{func.__name__} took {elapsed:.6f}s")
+        return result
+    return wrapper
+
+
+@timeit_decorator
+def slow_sum(n: int) -> int:
+    return sum(range(n))
+
+slow_sum(10_000_000)
+print(slow_sum.__name__)   # "slow_sum" — correctly preserved thanks to @wraps
+```
+</details>
+
+---
+
+## 5. Phần 2.4 — Module vs Package, Import
+
+### Lý thuyết
+
+**Module** = 1 file `.py`. **Package** = 1 thư mục chứa nhiều module, đánh dấu bằng `__init__.py`.
 
 ```
 mytools/
-├── __init__.py       # chạy khi "import mytools", thường dùng để expose API công khai
-├── stats.py           # module con
-├── cli.py              # module con
-└── fib.py               # module con
+├── __init__.py       # chạy khi "import mytools", expose API công khai
+├── stats.py
+├── cli.py
+└── fib.py
 ```
 
-**`__init__.py` dùng để làm gì?**
-1. Đánh dấu thư mục là 1 package (bắt buộc với "regular package" — cách truyền thống, tương thích mọi phiên bản).
-2. Kiểm soát API công khai: `from mytools.stats import compute_stats` có thể được rút gọn thành `from mytools import compute_stats` nếu bạn import nó vào `__init__.py`.
-3. Chạy code khởi tạo khi package được import lần đầu.
-
-**Absolute vs Relative import:**
+**Absolute vs relative import:**
 
 ```python
-# Absolute import — luôn ghi đường dẫn đầy đủ từ gốc package
+# Absolute — luôn ghi đường dẫn đầy đủ
 from mytools.stats import compute_stats
 
-# Relative import — chỉ dùng BÊN TRONG package, tương đối với vị trí file hiện tại
-from .stats import compute_stats      # cùng cấp (1 dấu chấm)
-from ..utils import helper             # lên 1 cấp cha (2 dấu chấm)
+# Relative — chỉ dùng BÊN TRONG package
+from .stats import compute_stats      # cùng cấp
+from ..utils import helper             # lên 1 cấp cha
 ```
 
-> **Khuyến nghị của lộ trình:** ưu tiên **absolute import** trong hầu hết trường hợp — dễ đọc, dễ tìm kiếm (grep), và không lỗi khi refactor di chuyển file. Chỉ dùng relative import khi viết package sẽ được publish và có thể đổi tên.
+> **Khuyến nghị:** ưu tiên absolute import — dễ đọc, dễ grep, không lỗi khi refactor di chuyển file.
 
-### 2.5. `if __name__ == "__main__":`
+**`if __name__ == "__main__":`** — chỉ chạy khi file được thực thi trực tiếp, không chạy khi bị import.
+
+### Bài tập 2.4 — Module tự viết có cả 2 chế độ
+
+- [ ] **BT 2.4.1** — Viết 1 file `geometry.py` có hàm `circle_area(r)`, và 1 khối `if __name__ == "__main__":` in demo. Chạy trực tiếp (`python geometry.py`) và import từ file khác — quan sát khối demo chỉ chạy ở trường hợp đầu.
+- [ ] **BT 2.4.2** — Tạo package nhỏ `shapes/` gồm `__init__.py` và `circle.py`, dùng absolute import để expose `circle_area` ra ở cấp `shapes` (`from shapes import circle_area`).
+
+<details>
+<summary><strong>Lời giải chi tiết BT 2.4</strong></summary>
 
 ```python
-# stats.py
-def compute_stats(numbers):
-    ...
+# geometry.py
+"""Simple geometry utilities with a __main__ demo block."""
+
+def circle_area(radius: float) -> float:
+    """Return the area of a circle with the given radius."""
+    return 3.14159 * radius ** 2
 
 if __name__ == "__main__":
-    # Chỉ chạy khi file này được thực thi TRỰC TIẾP (python stats.py)
-    # KHÔNG chạy khi file này được import từ nơi khác (import stats)
-    print(compute_stats([1, 2, 3]))
+    print(f"Demo: circle_area(5) = {circle_area(5)}")
 ```
 
-**Vì sao cần?** Mỗi module Python có 1 biến ẩn `__name__`. Khi chạy trực tiếp (`python stats.py`), `__name__` mang giá trị `"__main__"`. Khi bị import từ file khác (`import stats`), `__name__` mang giá trị `"stats"` (tên module thật). Nhờ vậy 1 file vừa dùng được như thư viện (import, không chạy code demo) vừa dùng được như script độc lập (chạy trực tiếp, có demo/CLI).
+```bash
+python geometry.py          # prints the demo line
+```
+```python
+# from another file:
+from geometry import circle_area
+circle_area(5)   # 78.53975 — the demo line does NOT print here
+```
 
-### 2.6. Circular Import
-
-Xảy ra khi module A import module B, và module B (trực tiếp hoặc gián tiếp) lại import module A.
+```
+shapes/
+├── __init__.py
+└── circle.py
+```
 
 ```python
-# a.py
-import b
-def func_a():
-    return b.func_b()
+# shapes/circle.py
+"""Circle-related geometry functions."""
 
-# b.py
-import a          # LỖI: khi Python đang load a.py (chưa xong), b.py cố import lại a
-def func_b():
-    return a.func_a()
+def circle_area(radius: float) -> float:
+    return 3.14159 * radius ** 2
 ```
 
-**3 cách phá vỡ circular import:**
-1. **Tái cấu trúc code**: đưa phần dùng chung ra 1 module thứ 3 (`common.py`) mà cả A và B cùng import — cách tốt nhất, giải quyết tận gốc.
-2. **Import trễ (local import)**: chuyển `import b` xuống bên trong hàm thay vì đầu file — trì hoãn việc import tới khi thực sự cần, lúc đó module kia đã load xong.
-3. **Import cả module thay vì import tên cụ thể**: `import b` rồi gọi `b.func_b()` thay vì `from b import func_b` — đôi khi tránh được lỗi vì Python chỉ cần "biết" module tồn tại, chưa cần tên cụ thể bên trong đã sẵn sàng.
+```python
+# shapes/__init__.py
+"""shapes package — exposes circle_area at the package level."""
+from shapes.circle import circle_area
 
-### 2.7. Xây CLI với `typer`
+__all__ = ["circle_area"]
+```
+
+```python
+from shapes import circle_area   # works thanks to __init__.py re-export
+print(circle_area(3))
+```
+</details>
+
+---
+
+## 6. Phần 2.5 — Circular Import
+
+### Lý thuyết
+
+Xảy ra khi module A import module B, và B (trực tiếp/gián tiếp) lại import A.
+
+**3 cách phá vỡ:**
+1. **Tái cấu trúc**: đưa phần dùng chung ra module thứ 3 — cách tốt nhất.
+2. **Import trễ**: chuyển `import b` xuống bên trong hàm.
+3. **Import cả module**: `import b` rồi gọi `b.func_b()` thay vì `from b import func_b`.
+
+### Bài tập 2.5 — Tự tạo và phá vỡ circular import
+
+- [ ] **BT 2.5.1** — Cố tình tạo 2 file `a.py`/`b.py` circular import lẫn nhau, chạy và ghi lại lỗi chính xác Python báo.
+- [ ] **BT 2.5.2** — Sửa lỗi trên bằng cách 2 (import trễ), chứng minh chạy được.
+
+<details>
+<summary><strong>Lời giải chi tiết BT 2.5</strong></summary>
+
+```python
+# a.py (buggy)
+from b import func_b   # kích hoạt việc load b.py NGAY tại đây
+
+def func_a():
+    return "a"
+
+if __name__ == "__main__":
+    print(func_a())
+```
+
+```python
+# b.py (buggy)
+from a import func_a   # a.py CHƯA định nghĩa xong func_a lúc này -> lỗi
+
+def func_b():
+    return "b"
+```
+
+Chạy `python a.py` ném lỗi **chính xác** (đã kiểm chứng thực tế, không phải suy đoán):
+```
+ImportError: cannot import name 'func_b' from partially initialized module 'b'
+(most likely due to a circular import) (.../b.py)
+```
+
+> **Lưu ý quan trọng đã tự kiểm chứng khi soạn bài:** nếu viết ví dụ circular import bằng `import a`/`import b` (import cả module, không dùng `from ... import tên_cụ_thể`) và để 2 hàm gọi lẫn nhau, Python **không** ném `ImportError` — 2 module vẫn import thành công (vì lúc import chỉ cần biết module tồn tại, chưa cần tên bên trong sẵn sàng). Lỗi thật sự chỉ lộ ra khi bạn dùng `from module import tên_cụ_thể` — vì lúc đó Python cần tên đó **đã được định nghĩa xong** trong module kia ngay tại thời điểm import.
+
+**Sửa bằng import trễ:**
+
+```python
+# a.py (fixed)
+def func_a():
+    return "a"
+
+if __name__ == "__main__":
+    print(func_a())
+```
+
+```python
+# b.py (fixed)
+def func_b():
+    from a import func_a   # import trễ — a.py đã load xong khi hàm này thực sự chạy
+    return "b calls " + func_a()
+
+if __name__ == "__main__":
+    print(func_b())
+```
+
+```bash
+python a.py   # "a"
+python b.py   # "b calls a"
+```
+</details>
+
+---
+
+## 7. Phần 2.6 — CLI với `typer`
+
+### Lý thuyết
 
 ```python
 import typer
@@ -227,38 +441,65 @@ if __name__ == "__main__":
     app()
 ```
 
-`typer` tự sinh `--help`, kiểm tra kiểu dữ liệu tham số dựa trên type hint, và tạo ra CLI chuyên nghiệp chỉ với vài dòng — dùng thay cho `argparse` (verbose hơn nhiều) trong lộ trình này.
+`typer` tự sinh `--help`, kiểm tra kiểu dữ liệu tham số dựa trên type hint — dùng thay `argparse` (verbose hơn) trong lộ trình này.
 
----
+### Bài tập 2.6 — CLI 1 lệnh đơn giản
 
-## 3. Bài tập thực hành
+- [ ] **BT 2.6.1** — Viết 1 CLI `typer` với lệnh `greet --name Alice --times 3` in "Hello, Alice!" 3 lần.
 
-### BT1 — CLI `mytools stats`
+<details>
+<summary><strong>Lời giải chi tiết BT 2.6</strong></summary>
 
-Xây package `mytools/` với lệnh CLI:
+```python
+"""Minimal typer CLI demo."""
+import typer
 
-```bash
-mytools stats --file data.csv --col price
+app = typer.Typer()
+
+@app.command()
+def greet(
+    name: str = typer.Option(..., "--name"),
+    times: int = typer.Option(1, "--times"),
+) -> None:
+    """Print a greeting `times` times."""
+    for _ in range(times):
+        typer.echo(f"Hello, {name}!")
+
+if __name__ == "__main__":
+    app()
 ```
 
-In ra `mean`, `median`, `stdev` của cột `price` trong file CSV.
+```bash
+# Lưu ý: khi app CHỈ có 1 lệnh duy nhất, Typer coi nó là "single-command app"
+# và KHÔNG cần gõ tên lệnh (không phải "python greet_cli.py greet ..."):
+python greet_cli.py --name Alice --times 3
+# Hello, Alice!
+# Hello, Alice!
+# Hello, Alice!
+```
 
-### BT2 — `lru_cache` cho Fibonacci
-
-Viết hàm Fibonacci đệ quy **không** cache và **có** cache bằng `lru_cache`. Đo thời gian chạy `fibonacci(32)` ở cả 2 phiên bản, so sánh và giải thích chênh lệch.
-
-### Tiêu chí hoàn thành (DoD)
-
-- [ ] Package `mytools/` có `pyproject.toml`, cài được bằng `uv pip install -e .` (hoặc `pip install -e .`).
-- [ ] Chạy được cả 2 cách: `python -m mytools stats --file data.csv --col price` **và** `mytools stats --file data.csv --col price` (sau khi cài).
-- [ ] **Chạy trên thư mục khác** (không phải thư mục chứa source code) vẫn hoạt động bình thường — chứng minh package đã cài đúng, không phụ thuộc `sys.path` thủ công.
-- [ ] `fibonacci` có cache nhanh hơn rõ rệt (đo bằng số, không chỉ "cảm thấy nhanh hơn") so với không cache ở `n=32`.
+> Đây là hành vi đã kiểm chứng thực tế của Typer — khác với mytools CLI ở dự án tổng hợp bên dưới, nơi có **2** lệnh (`stats`, `fib-benchmark`) nên **phải** gõ tên lệnh trước các option.
+</details>
 
 ---
 
-## 4. Lời giải chi tiết
+## 8. Dự án tổng hợp — Package `mytools/` hoàn chỉnh
 
-### 4.1. Cấu trúc package `mytools/`
+Dùng lại **toàn bộ** Phần 2.1-2.6: tham số hàm chuẩn, `lru_cache`, absolute import, `if __name__=="__main__"`, và CLI `typer` — đóng gói thành 1 package cài đặt được thật.
+
+### Yêu cầu
+
+- [ ] **DA.1** — Cấu trúc package `mytools/` dùng src-layout: `pyproject.toml`, `src/mytools/{__init__.py, __main__.py, cli.py, stats.py, fib.py}`.
+- [ ] **DA.2** — `stats.py` chứa hàm `compute_stats`/`load_column` (đọc CSV, tính mean/median/stdev) — áp dụng type hint + docstring như Phần 2.1.
+- [ ] **DA.3** — `fib.py` chứa `fibonacci_cached`/`fibonacci_uncached`/`benchmark` — tái sử dụng nguyên vẹn lời giải Phần 2.3.
+- [ ] **DA.4** — `cli.py` dùng **absolute import** (Phần 2.4) để gọi `stats.py` và `fib.py`, xây 2 lệnh CLI (`stats`, `fib-benchmark`) bằng `typer` (Phần 2.6).
+- [ ] **DA.5** — `__init__.py` expose API công khai (Phần 2.4); `__main__.py` cho phép chạy `python -m mytools`.
+- [ ] **DA.6** — Cài bằng `uv pip install -e .`, chứng minh chạy đúng cả qua entry point lẫn `python -m mytools`, và chạy được từ **thư mục khác** (không cần sửa `sys.path`).
+
+<details>
+<summary><strong>Lời giải chi tiết — Dự án tổng hợp</strong></summary>
+
+**Cấu trúc:**
 
 ```
 mytools-project/
@@ -273,9 +514,7 @@ mytools-project/
 └── sample_data.csv
 ```
 
-> **Vì sao dùng cấu trúc `src/mytools/` thay vì đặt `mytools/` ngay ở gốc?** Đây là "src layout" — cách bố trí được khuyến nghị chính thức bởi Python Packaging Authority. Nó buộc bạn phải **cài đặt** package (`pip install -e .`) trước khi import được, thay vì vô tình import trực tiếp từ thư mục làm việc — giúp phát hiện sớm lỗi thiếu khai báo dependency mà lẽ ra sẽ chỉ lộ ra khi người khác cài package của bạn.
-
-### 4.2. `pyproject.toml`
+**`pyproject.toml`:**
 
 ```toml
 [project]
@@ -283,9 +522,7 @@ name = "mytools"
 version = "0.1.0"
 description = "Personal utility CLI for Unit 01 exercises"
 requires-python = ">=3.11"
-dependencies = [
-    "typer>=0.12.0",
-]
+dependencies = ["typer>=0.12.0"]
 
 [project.scripts]
 mytools = "mytools.cli:app"
@@ -298,9 +535,7 @@ build-backend = "hatchling.build"
 packages = ["src/mytools"]
 ```
 
-**Giải thích:** khai báo `[project.scripts]` là thứ tạo ra lệnh `mytools` trong terminal sau khi cài — `pip`/`uv` sẽ tự sinh 1 file thực thi nhỏ gọi `mytools.cli:app()`.
-
-### 4.3. `src/mytools/stats.py`
+**`src/mytools/stats.py`:**
 
 ```python
 """Compute basic descriptive statistics for a numeric CSV column."""
@@ -313,8 +548,6 @@ from dataclasses import dataclass
 
 @dataclass
 class ColumnStats:
-    """Container for descriptive statistics of one numeric column."""
-
     mean: float
     median: float
     stdev: float
@@ -334,7 +567,7 @@ def load_column(file_path: str, column: str) -> list[float]:
 
 
 def compute_stats(values: list[float]) -> ColumnStats:
-    """Compute mean, median, and sample standard deviation for a list of numbers."""
+    """Compute mean, median, and sample standard deviation."""
     if not values:
         raise ValueError("Cannot compute stats on an empty list")
     stdev = statistics.stdev(values) if len(values) > 1 else 0.0
@@ -344,18 +577,12 @@ def compute_stats(values: list[float]) -> ColumnStats:
         stdev=stdev,
         count=len(values),
     )
-
-
-if __name__ == "__main__":
-    # Quick manual check when running this file directly: python stats.py
-    demo_values = [10.0, 20.0, 30.0, 40.0]
-    print(compute_stats(demo_values))
 ```
 
-### 4.4. `src/mytools/fib.py`
+**`src/mytools/fib.py`** (reuses the Section 2.3 solution verbatim):
 
 ```python
-"""Fibonacci implementations used to demonstrate functools.lru_cache."""
+"""Fibonacci implementations demonstrating functools.lru_cache."""
 from __future__ import annotations
 
 import time
@@ -363,7 +590,6 @@ from functools import lru_cache
 
 
 def fibonacci_uncached(n: int) -> int:
-    """Plain recursive Fibonacci — exponential time complexity O(2^n)."""
     if n < 2:
         return n
     return fibonacci_uncached(n - 1) + fibonacci_uncached(n - 2)
@@ -371,36 +597,29 @@ def fibonacci_uncached(n: int) -> int:
 
 @lru_cache(maxsize=None)
 def fibonacci_cached(n: int) -> int:
-    """Recursive Fibonacci memoized with lru_cache — linear time O(n)."""
     if n < 2:
         return n
     return fibonacci_cached(n - 1) + fibonacci_cached(n - 2)
 
 
 def benchmark(n: int = 32) -> None:
-    """Compare the runtime of the cached and uncached implementations."""
     start = time.perf_counter()
     result_uncached = fibonacci_uncached(n)
     time_uncached = time.perf_counter() - start
 
-    fibonacci_cached.cache_clear()  # ensure a fair, cold-cache comparison
+    fibonacci_cached.cache_clear()
     start = time.perf_counter()
     result_cached = fibonacci_cached(n)
     time_cached = time.perf_counter() - start
 
-    assert result_uncached == result_cached, "Both implementations must agree"
-
+    assert result_uncached == result_cached
     print(f"fibonacci({n}) = {result_uncached}")
     print(f"Uncached: {time_uncached:.4f}s")
     print(f"Cached  : {time_cached:.6f}s")
     print(f"Speedup : {time_uncached / max(time_cached, 1e-9):.0f}x")
-
-
-if __name__ == "__main__":
-    benchmark()
 ```
 
-### 4.5. `src/mytools/cli.py`
+**`src/mytools/cli.py`** (absolute import + typer, Phần 2.4 + 2.6):
 
 ```python
 """Typer-based command-line interface for the mytools package."""
@@ -429,7 +648,7 @@ def stats(
 
 
 @app.command()
-def fib_benchmark(n: int = typer.Option(32, "--n", help="Fibonacci index to benchmark.")) -> None:
+def fib_benchmark(n: int = typer.Option(32, "--n")) -> None:
     """Compare cached vs. uncached Fibonacci runtime."""
     benchmark(n)
 
@@ -438,9 +657,7 @@ if __name__ == "__main__":
     app()
 ```
 
-**Lưu ý quan trọng:** `cli.py` dùng **absolute import** (`from mytools.fib import benchmark`), đúng khuyến nghị ở mục 2.4 — vì package này sẽ được cài đặt (`pip install -e .`), absolute import luôn hoạt động đúng bất kể file được chạy từ đâu.
-
-### 4.6. `src/mytools/__init__.py`
+**`src/mytools/__init__.py`:**
 
 ```python
 """mytools — personal utility CLI for the AI Engineer roadmap, Unit 01."""
@@ -450,103 +667,73 @@ __all__ = ["ColumnStats", "compute_stats", "load_column"]
 __version__ = "0.1.0"
 ```
 
-> Đây là ví dụ cho mục 2.4: nhờ dòng import này, người dùng package có thể viết `from mytools import compute_stats` thay vì phải biết chi tiết `compute_stats` nằm ở module con `stats.py`.
-
-### 4.7. `src/mytools/__main__.py`
+**`src/mytools/__main__.py`:**
 
 ```python
-"""Enables `python -m mytools ...` as an alternative to the installed `mytools` command."""
+"""Enables `python -m mytools ...` as an alternative to the installed command."""
 from mytools.cli import app
 
 if __name__ == "__main__":
     app()
 ```
 
-> File `__main__.py` là quy ước đặc biệt của Python: khi bạn chạy `python -m <package_name>`, Python tìm và thực thi chính xác file này bên trong package.
-
-### 4.8. Dữ liệu mẫu và cách chạy
+**Cài đặt và chạy (kiểm chứng DA.6):**
 
 ```bash
-# sample_data.csv
-cat > sample_data.csv << 'EOF'
-id,price,quantity
-1,19.99,3
-2,45.50,1
-3,12.00,10
-4,89.99,2
-5,5.25,20
-EOF
-```
-
-**Cài đặt và chạy:**
-
-```bash
-cd mytools-project
 uv pip install -e .
 
-# Cách 1: qua entry point đã cài
 mytools stats --file sample_data.csv --col price
-
-# Cách 2: qua python -m
 python -m mytools stats --file sample_data.csv --col price
 
-# Benchmark lru_cache
+# Chạy từ thư mục khác — chứng minh không cần sys.path
+cd /tmp && mytools stats --file /path/to/sample_data.csv --col price
+
 mytools fib-benchmark --n 32
 ```
 
-**Output mẫu:**
-
-```
-count : 5
-mean  : 34.5460
-median: 19.9900
-stdev : 34.5416
-```
-
-```
-fibonacci(32) = 2178309
-Uncached: 0.2332s
-Cached  : 0.000029s
-Speedup : 8062x
-```
-
-> **Lưu ý:** số liệu `stdev`, thời gian benchmark và speedup thực tế sẽ khác nhau tuỳ máy/phiên bản Python — output trên là kết quả thật đo được khi soạn bài này (đã chạy kiểm chứng, không phải số bịa). Đừng ngạc nhiên nếu máy bạn ra con số khác — quan trọng là **cached luôn nhanh hơn uncached hàng nghìn lần** ở `n=32`.
-
-**Kiểm chứng DoD "chạy trên máy khác không cần sửa `sys.path`":** vì đã cài bằng `pip install -e .`, package `mytools` được đăng ký vào site-packages của venv (dưới dạng liên kết tới source, nhờ chế độ "editable"). Bạn có thể `cd` sang **bất kỳ thư mục nào khác** trên máy (miễn còn trong cùng venv) và `mytools stats ...` vẫn chạy được — không cần `sys.path.append(...)` thủ công như khi chạy trực tiếp file `.py` từ 1 thư mục cụ thể.
-
-### 4.9. Đáp án Quiz
-
-**Câu 1: LEGB tra cứu tên biến theo thứ tự nào?**
-> Local → Enclosing → Global → Built-in. Python dừng lại ngay khi tìm thấy tên ở tầng đầu tiên khớp; nếu duyệt hết cả 4 tầng mà không thấy sẽ ném `NameError`.
-
-**Câu 2: `lru_cache` lưu gì và rủi ro bộ nhớ là gì?**
-> `lru_cache` lưu 1 bảng ánh xạ **từ tổ hợp tham số đầu vào (đã hash được) → giá trị trả về** của hàm, trong bộ nhớ RAM của tiến trình đang chạy. Rủi ro: nếu hàm được gọi với **rất nhiều tổ hợp tham số khác nhau** (ví dụ tham số là 1 đối tượng lớn thay đổi liên tục), cache sẽ phình to không kiểm soát, gây tốn RAM hoặc rò rỉ bộ nhớ nếu không giới hạn (`maxsize=None` nghĩa là không giới hạn số lượng entry — chỉ nên dùng khi chắc chắn không gian tham số hữu hạn và nhỏ, như bài toán Fibonacci). Ngoài ra, tham số phải **hashable** (immutable) — không dùng `lru_cache` được cho hàm nhận `list`/`dict` làm tham số.
-
-**Câu 3: Vì sao relative import lỗi khi chạy trực tiếp file?**
-> Relative import (`from .stats import ...`) yêu cầu Python biết được **file hiện tại đang thuộc package nào** — thông tin này chỉ có khi module được **import** như 1 phần của package (Python thiết lập biến `__package__`). Khi bạn chạy trực tiếp 1 file nằm trong package bằng `python somefile.py`, Python coi file đó là script độc lập với `__name__ == "__main__"` và **không có khái niệm package bao quanh nó**, nên `from .stats import ...` sẽ ném `ImportError: attempted relative import with no known parent package`. Cách chạy đúng khi cần relative import: chạy qua `python -m package_name.somefile` (dùng cờ `-m`, không gọi trực tiếp đường dẫn file) — hoặc đơn giản hơn, dùng absolute import như khuyến nghị ở mục 2.4.
+> **Kết quả đo thật** khi soạn bài này: `stdev` phụ thuộc dữ liệu CSV cụ thể của bạn; `fibonacci(32)` cached nhanh hơn uncached khoảng **8,000x** (số liệu thực tế đo được, sẽ khác nhau tuỳ máy — quan trọng là cached luôn nhanh hơn hàng nghìn lần).
+</details>
 
 ---
 
-## 5. Tổng kết & bước tiếp theo
+## 9. Đáp án Quiz
 
-Bạn đã có:
-- ✅ Nắm vững mọi kiểu tham số hàm và biết khi nào dùng keyword-only để code rõ ràng hơn.
-- ✅ Hiểu LEGB — nền tảng để đọc hiểu closure và decorator (sẽ đào sâu ở Bài 1.7).
-- ✅ Package `mytools/` hoàn chỉnh, cài đặt được, có CLI thật — mẫu cấu trúc này sẽ tái sử dụng cho mọi package sau này trong lộ trình.
+- [ ] Đã trả lời cả 3 câu bằng lời của bạn trong `SUBMISSION.md` trước khi mở phần dưới.
+
+<details>
+<summary><strong>Đáp án tham khảo</strong></summary>
+
+**Câu 1: LEGB tra cứu theo thứ tự nào?**
+> Local → Enclosing → Global → Built-in. Dừng ngay khi tìm thấy tên ở tầng đầu tiên khớp.
+
+**Câu 2: `lru_cache` lưu gì và rủi ro bộ nhớ là gì?**
+> Lưu bảng ánh xạ từ tổ hợp tham số (hashable) → giá trị trả về, trong RAM tiến trình. Rủi ro: nếu hàm gọi với rất nhiều tổ hợp tham số khác nhau, cache phình to không kiểm soát (`maxsize=None` = không giới hạn). Tham số phải hashable — không dùng được với `list`/`dict`.
+
+**Câu 3: Vì sao relative import lỗi khi chạy trực tiếp file?**
+> Relative import cần Python biết file thuộc package nào (`__package__`), chỉ có khi module được import như 1 phần của package. Chạy trực tiếp `python somefile.py` khiến Python coi nó là script độc lập, không có package bao quanh → `ImportError: attempted relative import with no known parent package`. Cách đúng: chạy qua `python -m package.somefile`, hoặc dùng absolute import.
+</details>
+
+---
+
+## 10. Tổng kết & bước tiếp theo
+
+- ✅ Nắm vững tham số hàm, LEGB, first-class function, `functools`.
+- ✅ Hiểu module/package/import — nền tảng cấu trúc mọi dự án sau này.
+- ✅ Package `mytools/` hoàn chỉnh, cài đặt được, có CLI thật — mẫu cấu trúc tái sử dụng cho mọi package sau này trong lộ trình.
 
 **Bài tiếp theo:** U01-04 — OOP và thiết kế lớp trong Python.
 
 ---
 
-## 6. Ghi điểm (dành cho người chấm)
+## 11. Ghi điểm (dành cho người chấm)
 
 | Tiêu chí | Điểm tối đa |
 |---|---|
-| Package cài đặt đúng bằng `pip install -e .`, có `pyproject.toml` đúng chuẩn | 3 |
-| CLI `mytools stats` chạy đúng, cả 2 cách (entry point + `python -m`) | 3 |
-| Chạy được từ thư mục khác, không sửa `sys.path` thủ công | 2 |
-| `lru_cache` benchmark có số liệu rõ ràng, giải thích đúng nguyên nhân | 1 |
-| Trả lời đúng 3/3 câu quiz bằng lời của bạn | 1 |
+| Bài tập Phần 2.1-2.6 (mỗi phần có ít nhất 1 bài đúng) | 3 |
+| Package cài đặt đúng, `pyproject.toml` chuẩn src-layout | 2 |
+| CLI chạy đúng cả 2 cách (entry point + `python -m`), chạy từ thư mục khác | 3 |
+| `lru_cache` benchmark có số liệu rõ ràng | 1 |
+| Trả lời đúng 3/3 câu quiz | 1 |
 | **Tổng** | **10** |
 
 Đạt ≥ 8/10 → tick ☑ ở sheet `U01_Python_CS` trong workmap Excel.

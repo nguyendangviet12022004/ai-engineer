@@ -6,34 +6,52 @@
 - Hoàn thành:
 - Số giờ thực tế đã bỏ ra:
 
-## BT1 — 15 hàm tiện ích
+## Phần 2.1 — Mutable default / aliasing
 
-- Link file `python_core.py` (trong `src/`):
-- Kết quả `pytest -v`: (dán output)
+- Output BT 2.1.1 (bug):
+- Output BT 2.1.2 (đã sửa):
+- Giải thích `is` vs `==` (BT 2.1.3):
 
-```
-(dán output test ở đây)
-```
+## Phần 2.2 — Độ phức tạp
 
-## BT2 — 20 bài luyện tập
+- Kết quả đo `timeit` list vs set (BT 2.2.1):
+- Lỗi khi dùng list làm dict key (BT 2.2.2):
 
-| # | Tên bài | Link | Kết quả |
-|---|---|---|---|
-| 1 |  |  |  |
-| 2 |  |  |  |
-| ... |  |  |  |
+## Phần 2.3 — Unpacking / walrus
 
-## BT3 — Regex
+- Output BT 2.3.1, 2.3.2:
 
-Dán output script trích xuất email/SĐT/ngày tháng:
+## Phần 2.4 — Comprehension
+
+- Output BT 2.4.1, 2.4.2 (so sánh RAM):
+
+## Phần 2.5 — Regex
+
+- Output trích email/SĐT/ngày tháng:
+
+## Phần 2.6 — Shallow vs deep copy
+
+- Output BT 2.6.1 (matrix bug + fix):
+- Output BT 2.6.2 (backup_config):
+
+## Dự án tổng hợp
+
+- Link `python_core.py`, `test_python_core.py`, `analyze_text.py`:
+- Kết quả `pytest -v`:
 
 ```
 (dán output ở đây)
 ```
 
-## Trả lời quiz (10 câu độ phức tạp)
+- Output `analyze_text.py`:
 
-> Viết bằng lời của bạn.
+```
+(dán output ở đây)
+```
+
+- Link 20 bài LeetCode/HackerRank (`src/leetcode/`):
+
+## Trả lời quiz (10 câu độ phức tạp)
 
 1.
 2.
@@ -45,16 +63,6 @@ Dán output script trích xuất email/SĐT/ngày tháng:
 8.
 9.
 10.
-
-## Giải thích 5 đoạn code "đánh lừa"
-
-> Bằng lời của bạn — không copy từ LESSON.md.
-
-1. Mutable default argument:
-2. Aliasing với `[[0]*3]*3`:
-3. Shallow copy với dict lồng nhau:
-4. Closure trễ trong vòng lặp:
-5. So sánh float:
 
 ## Tự đánh giá
 

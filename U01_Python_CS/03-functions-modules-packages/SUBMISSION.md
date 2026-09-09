@@ -6,40 +6,63 @@
 - Hoàn thành:
 - Số giờ thực tế đã bỏ ra:
 
-## BT1 — CLI `mytools stats`
+## Phần 2.1 — Tham số hàm
 
-- Link package (trong `src/`):
-- Output khi chạy qua entry point `mytools`:
+- Output BT 2.1.1, 2.1.2:
+
+## Phần 2.2 — Closure (nonlocal)
+
+- Output BT 2.2.1, 2.2.2:
+
+## Phần 2.3 — `functools`
+
+- Output benchmark `lru_cache` (BT 2.3.1):
+- Output `@timeit_decorator` (BT 2.3.2):
+
+## Phần 2.4 — Module & package
+
+- Output `geometry.py` (chạy trực tiếp vs import):
+- Output package `shapes/`:
+
+## Phần 2.5 — Circular import
+
+- Output lỗi `ImportError` (BT 2.5.1):
+- Xác nhận đã sửa bằng import trễ (BT 2.5.2):
+
+## Phần 2.6 — CLI typer
+
+- Output `greet_cli.py`:
+
+## Dự án tổng hợp — package `mytools/`
+
+- Link repo package:
+- Output `mytools stats`:
 
 ```
 (dán output ở đây)
 ```
 
-- Output khi chạy qua `python -m mytools`:
+- Output `python -m mytools stats` (phải khớp):
 
 ```
 (dán output ở đây)
 ```
 
-- Output khi chạy từ 1 thư mục khác (chứng minh không cần sys.path):
+- Output khi chạy từ thư mục khác:
 
 ```
 (dán output ở đây)
 ```
 
-## BT2 — `lru_cache` Fibonacci
-
-- Output benchmark:
+- Output `mytools fib-benchmark`:
 
 ```
 (dán output ở đây)
 ```
-
-- Giải thích chênh lệch tốc độ bằng lời của bạn:
 
 ## Trả lời quiz (3 câu)
 
-**Câu 1: LEGB tra cứu tên biến theo thứ tự nào?**
+**Câu 1: LEGB tra cứu theo thứ tự nào?**
 
 **Câu 2: `lru_cache` lưu gì và rủi ro bộ nhớ là gì?**
 

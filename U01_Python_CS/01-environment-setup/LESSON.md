@@ -3,6 +3,8 @@
 > **Unit:** U01 — Python & Nền tảng CS cho AI Engineer
 > **Tuần:** 1 · **Giờ dự kiến:** 6 · **Độ khó:** Dễ
 > **Tài liệu tham khảo:** MIT Missing Semester (6.NULL) L1-2 · Python Packaging User Guide · Real Python: Virtual Environments · [uv docs — Python versions](https://docs.astral.sh/uv/guides/install-python/)
+> **Quy ước bắt buộc:** Toàn bộ code, comment, docstring, tên biến/hàm trong bài này **100% tiếng Anh**. Phần giải thích lý thuyết bằng tiếng Việt.
+> **Cách dùng file này:** Đọc lý thuyết từng phần → làm ngay bài tập của phần đó (tick ☐ → ☑) → cuối bài có 1 dự án tổng hợp dùng lại mọi thứ đã làm.
 
 ---
 
@@ -10,69 +12,34 @@
 
 Sau bài này bạn phải:
 
-1. Cài được Python 3.11+ và quản lý được **nhiều phiên bản Python** trên cùng 1 máy bằng `uv`.
-2. Hiểu và dùng thành thạo **`uv`** để quản lý cả phiên bản Python lẫn dependency (thay cho pip/venv/pyenv/poetry rời rạc).
-3. Biết phân biệt `pyproject.toml` vs `requirements.txt` vs lock file, và vì sao lock file bắt buộc phải có trong mọi dự án AI.
-4. Cấu hình VS Code + các extension tối thiểu để làm việc hiệu quả.
-5. Biết khi nào dùng Jupyter Notebook, khi nào dùng file `.py`, khi nào dùng Google Colab.
-6. Tạo ra 1 repo mẫu (`ai-lab`) mà **người khác clone về chạy được ngay trong < 5 phút** — đây là kỹ năng nền tảng cho toàn bộ 52 tuần sau.
+- [ ] Cài được Python 3.11+ và quản lý được nhiều phiên bản Python bằng `uv` (không cần `pyenv`).
+- [ ] Dùng thành thạo `uv` để quản lý dependency, phân biệt `pyproject.toml` vs lock file.
+- [ ] Cấu hình VS Code + extension tối thiểu.
+- [ ] Biết khi nào dùng Jupyter Notebook, khi nào dùng script `.py`, khi nào dùng Colab.
+- [ ] Tạo ra 1 repo mẫu (`ai-lab`) mà người khác clone về chạy được ngay trong < 5 phút.
 
 ---
 
-## 2. Lý thuyết
+## 2. Phần 2.1 — `uv`: quản lý Python version và dependency
 
-### 2.1. Vì sao không cài Python trực tiếp vào hệ điều hành
+### Lý thuyết
 
-Hệ điều hành Linux/macOS thường có sẵn 1 bản Python dùng cho hệ thống (system Python). **Tuyệt đối không** cài package trực tiếp vào đó bằng `pip install` — dễ phá vỡ tool hệ thống. Ta cần:
+Hệ điều hành Linux/macOS thường có sẵn 1 bản Python cho hệ thống (system Python). **Tuyệt đối không** cài package trực tiếp vào đó — dễ phá vỡ tool hệ thống.
 
-- Một cách quản lý **nhiều phiên bản Python** (3.10, 3.11, 3.12...) song song.
-- Một cách cô lập dependency **theo từng dự án** → dùng **virtual environment**.
-
-Trước đây 2 việc này cần 2 công cụ riêng: `pyenv` (quản lý version) + `venv`/`poetry` (quản lý dependency). **Từ 2024, `uv` làm được cả hai trong 1 công cụ duy nhất** — đây là lý do lộ trình này không dùng `pyenv` nữa.
-
-> **Sửa lại so với bản trước:** bài học này từng dạy dùng `pyenv` để quản lý phiên bản Python. Điều đó **không sai** nhưng **thừa** — vì `uv` (từ bản 0.3 trở lên) đã tích hợp sẵn khả năng tự tải và quản lý nhiều phiên bản Python (`uv python install`, `uv python pin`), không cần cài thêm `pyenv`. Giữ 2 công cụ chồng chéo chức năng chỉ gây rối: bạn phải nhớ `pyenv global` ảnh hưởng gì, `uv` có tôn trọng `.python-version` của pyenv hay không, PATH ai đứng trước ai... Quy tắc đơn giản nhất: **dùng 1 công cụ (`uv`) cho cả version lẫn dependency.**
-
-### 2.2. `uv python` — quản lý phiên bản Python (thay cho pyenv)
-
-```bash
-# Liệt kê các phiên bản Python uv có thể cài (tự tải binary đã build sẵn, không cần biên dịch)
-uv python list
-
-# Cài 1 phiên bản Python cụ thể (uv tự tải về, không phụ thuộc Python đã có trên máy)
-uv python install 3.11
-
-# Đặt phiên bản Python cho riêng dự án hiện tại (tạo file .python-version)
-cd my-project
-uv python pin 3.11
-
-# Chạy trực tiếp bằng 1 phiên bản Python cụ thể mà không cần cài global
-uv run --python 3.12 python --version
-```
-
-Cơ chế: khi bạn chạy `uv run` hoặc `uv sync` trong 1 thư mục, `uv` đọc file `.python-version` (nếu có) hoặc trường `requires-python` trong `pyproject.toml`, rồi **tự tải đúng bản Python đó** (nếu chưa có trên máy) và dùng nó để tạo venv — hoàn toàn không cần bạn tự quản lý PATH hay shim như `pyenv`.
-
-**Vậy khi nào vẫn cần biết đến `pyenv`?** Nếu bạn tham gia 1 dự án/công ty đã dùng sẵn `pyenv` từ trước (rất phổ biến trong các codebase cũ trước 2024), bạn cần biết đọc file `.python-version` do `pyenv` tạo ra và lệnh `pyenv install/global/local` để không bỡ ngỡ — nhưng **không cần tự cài mới** cho dự án của riêng bạn trong lộ trình này.
-
-### 2.3. venv vs conda vs uv — chọn cái nào?
-
-| Công cụ | Quản lý Python version? | Quản lý package | Tốc độ resolve | Khi nào dùng |
-|---|---|---|---|---|
-| `venv` (built-in) | Không | pip | Chậm | Dự án đơn giản, không muốn cài thêm gì |
-| `pyenv` | Có (chỉ version, không quản lý package) | — | — | Codebase cũ đã dùng sẵn; không cần cho dự án mới |
-| `conda`/`mamba` | Có | conda packages + pip | Trung bình (mamba nhanh) | Cần binary phức tạp (CUDA, MKL) khó build bằng pip |
-| `poetry` | Không (thường kết hợp pyenv) | pip-compatible | Chậm | Dự án Python thuần, cần publish package |
-| **`uv`** | **Có (tự tải, tích hợp sẵn)** | pip-compatible, viết bằng Rust | **Rất nhanh (10-100x pip)** | **Mặc định cho mọi dự án trong lộ trình này** |
-
-**Quyết định của lộ trình: dùng `uv` làm công cụ duy nhất, cho cả version lẫn dependency.** Lý do: `uv` giải quyết dependency graph bằng Rust nên nhanh hơn pip 10-100 lần, và tích hợp sẵn: tải Python version → tạo venv → resolve dependency → lock file, tất cả trong 1 binary, không cần cài thêm `pyenv`/`poetry` chồng chéo lên nhau.
-
-**Ngoại lệ duy nhất đáng cân nhắc `conda`**: khi bạn cần 1 package có phần biên dịch native phức tạp mà không có sẵn "wheel" cho hệ điều hành/kiến trúc CPU của bạn (một số thư viện khoa học cũ, hoặc bản CUDA toolkit đặc thù) — khi đó `conda`/`mamba` có kho binary riêng dễ cài hơn. Với các thư viện AI phổ biến hiện nay (numpy, pandas, torch, transformers...) thì `uv` xử lý tốt vì hầu hết đã publish wheel sẵn trên PyPI.
+Trước đây cần 2 công cụ riêng: `pyenv` (quản lý version) + `venv`/`poetry` (quản lý dependency). **Từ 2024, `uv` làm được cả hai trong 1 công cụ duy nhất** — đây là lý do lộ trình này không dùng `pyenv`.
 
 ```bash
 # Cài uv
 curl -LsSf https://astral.sh/uv/install.sh | sh
+uv --version
 
-# Khởi tạo 1 dự án mới
+# Cài 1 phiên bản Python cụ thể (uv tự tải, không cần Python có sẵn trên máy)
+uv python install 3.11
+uv python list
+
+# Khởi tạo dự án + ghim phiên bản Python
 uv init ai-lab && cd ai-lab
+uv python pin 3.11        # tạo file .python-version
 
 # Thêm dependency (tự tạo venv + cài + ghi vào pyproject.toml + lock file)
 uv add numpy pandas matplotlib
@@ -84,188 +51,47 @@ uv run python check_env.py
 uv sync
 ```
 
-### 2.4. pyproject.toml vs requirements.txt vs lock file
+**`pyproject.toml` vs lock file:** `pyproject.toml` khai báo *ý định* ("cần numpy >= 1.26") — con người đọc/sửa. Lock file (`uv.lock`) khoá **chính xác từng phiên bản, kể cả transitive dependency**, kèm hash — máy đọc, không sửa tay. Luôn commit cả 2, không commit `.venv/`.
 
-- **`pyproject.toml`**: khai báo *ý định* — "dự án này cần numpy >= 1.26". Đây là phần **con người đọc và sửa**.
-- **`requirements.txt`** (cách cũ): thường bị lẫn lộn giữa khai báo ý định và khai báo phiên bản chính xác — đây là nguồn gốc của rất nhiều lỗi "chạy trên máy tôi nhưng không chạy trên máy bạn".
-- **Lock file** (`uv.lock`): khoá **chính xác từng phiên bản của từng package, kể cả transitive dependency** (package mà package bạn cài phụ thuộc vào), kèm hash để kiểm tra toàn vẹn. Đây là phần **máy đọc, không nên sửa tay**.
+**Bảng so sánh nhanh:**
 
-> **Nguyên tắc:** `pyproject.toml` trả lời "tôi cần gì", lock file trả lời "chính xác cài cái gì". Luôn commit cả 2 vào git. Không commit `.venv/`.
+| Công cụ | Quản lý version? | Quản lý package | Tốc độ | Dùng khi nào |
+|---|---|---|---|---|
+| `venv` (built-in) | Không | pip | Chậm | Dự án đơn giản |
+| `pyenv` | Có (chỉ version) | — | — | Codebase cũ đã dùng sẵn |
+| `conda`/`mamba` | Có | conda + pip | Trung bình | Cần binary CUDA/MKL phức tạp |
+| **`uv`** | **Có (tự tải)** | pip-compatible, Rust | **Rất nhanh (10-100x pip)** | **Mặc định trong lộ trình này** |
 
-### 2.5. Semantic Versioning (SemVer)
+### Bài tập 2.1 — Môi trường tái lập được
 
-Phiên bản dạng `MAJOR.MINOR.PATCH` (ví dụ `2.1.4`):
-- **MAJOR** tăng khi có breaking change (code cũ có thể hỏng).
-- **MINOR** tăng khi thêm tính năng nhưng tương thích ngược.
-- **PATCH** tăng khi chỉ sửa lỗi.
+- [ ] **BT 2.1.1** — Dùng `uv` tạo dự án `ai-lab`, cài Python 3.11 qua `uv python install`, ghim version bằng `uv python pin`.
+- [ ] **BT 2.1.2** — Thêm dependency `numpy`, `pandas`, `matplotlib` bằng `uv add`. Ghi lại phiên bản numpy hiện tại.
+- [ ] **BT 2.1.3** — Xoá hoàn toàn `.venv/`, chạy `uv sync` để tái tạo. Kiểm chứng phiên bản numpy sau khi tái tạo **giống hệt** trước đó.
+- [ ] **BT 2.1.4** — Kiểm tra `.gitignore` có `.venv/` — chạy `git status` sau khi tạo venv, xác nhận `.venv/` không xuất hiện trong danh sách staged.
 
-Khai báo `numpy>=1.26,<2.0` nghĩa là "chấp nhận mọi bản vá và tính năng mới của nhánh 1.26 trở lên, nhưng không tự động nhảy sang major version 2 vì có thể breaking".
-
-### 2.6. VS Code cho AI Engineer
-
-Extension tối thiểu cần cài:
-1. **Python** (Microsoft) — chạy/debug code Python.
-2. **Pylance** — type checking, autocomplete thông minh (dựa trên Pyright).
-3. **Jupyter** — chạy notebook `.ipynb` ngay trong VS Code.
-4. **Ruff** — linter + formatter cực nhanh (thay thế flake8 + black + isort).
-
-Phím tắt quan trọng:
-- `F5`: chạy debug
-- `Ctrl+Shift+P` → "Python: Select Interpreter": chọn đúng venv của dự án (rất hay quên bước này!)
-- `Shift+Enter` trong notebook: chạy 1 cell
-
-### 2.7. Jupyter Notebook vs script `.py` vs Colab
-
-| Công cụ | Ưu điểm | Nhược điểm | Dùng khi nào |
-|---|---|---|---|
-| Jupyter Notebook | Chạy từng cell, xem kết quả ngay, vẽ biểu đồ inline | Khó version control (diff file `.ipynb` rất rối), dễ chạy sai thứ tự cell | EDA, thử nghiệm nhanh, trình bày kết quả |
-| Script `.py` | Version control sạch, test được, chạy production | Không xem kết quả từng bước trực quan | Code sẽ chạy lại nhiều lần, pipeline, thư viện dùng chung |
-| Google Colab | Miễn phí GPU, không cần cài gì, chia sẻ dễ | Mất session sau ~12h, mất dữ liệu nếu không mount Drive, giới hạn tài nguyên | Thử nghiệm cần GPU miễn phí, học tập, demo nhanh |
-
-**Nguyên tắc của lộ trình này**: logic quan trọng (được tái sử dụng) luôn nằm trong file `.py` trong package; notebook chỉ dùng để *gọi* logic đó và trực quan hoá — không viết logic cốt lõi trực tiếp trong notebook. Đây chính là nội dung Bài 1.14 sẽ đào sâu hơn.
-
-### 2.8. Google Colab — những điều cần biết
-
-```python
-# Mount Google Drive để giữ dữ liệu qua các phiên
-from google.colab import drive
-drive.mount('/content/drive')
-
-# Kiểm tra GPU được cấp
-!nvidia-smi
-
-# Cài thêm package (mỗi phiên phải cài lại vì máy ảo bị huỷ)
-!pip install -q package_name
-```
-
-**Cạm bẫy Colab**: máy ảo bị **thu hồi sau ~12 giờ** (hoặc ít hơn với tài khoản free khi ít hoạt động) — mọi thứ ngoài `/content/drive` sẽ mất, kể cả package đã cài. Luôn lưu checkpoint/kết quả quan trọng vào Drive.
-
----
-
-## 3. Bài tập thực hành
-
-### BT1 — Tạo môi trường tái lập được bằng lock file
-
-**Yêu cầu:**
-1. Dùng `uv` tạo 1 dự án mới tên `ai-lab`.
-2. Thêm các dependency: `numpy`, `pandas`, `matplotlib`.
-3. Xuất ra được lock file.
-4. **Xoá hoàn toàn** thư mục `.venv`.
-5. Chạy `uv sync` để tái tạo lại venv **chỉ từ lock file**.
-6. Chứng minh: viết 1 script in ra phiên bản chính xác của numpy, so sánh trước và sau khi tái tạo — phải giống hệt nhau.
-
-### BT2 — Script kiểm tra môi trường
-
-Viết file `check_env.py` in ra:
-- Phiên bản Python đang chạy
-- Phiên bản của numpy, pandas, matplotlib, torch (nếu có)
-- Có GPU khả dụng hay không (dùng `torch.cuda.is_available()`)
-- Hệ điều hành đang chạy
-
-### Tiêu chí hoàn thành (DoD)
-
-- [ ] Repo `ai-lab` có `pyproject.toml`, `uv.lock`, `.gitignore`, `README.md`.
-- [ ] Người khác (hoặc chính bạn trên 1 thư mục sạch khác) chỉ cần `git clone` + `uv sync` + `uv run python check_env.py` là chạy được, **không cần sửa gì thêm**, trong dưới 5 phút.
-- [ ] `.venv/` **không** nằm trong git (kiểm tra bằng `git status` sau khi tạo venv).
-- [ ] 1 notebook `00_hello.ipynb` chạy được cả ở local (qua VS Code/Jupyter) lẫn khi upload lên Colab.
-
----
-
-## 4. Lời giải chi tiết
-
-> Đọc phần này **sau khi đã tự làm** BT1 và BT2. Nếu bạn thấy lời giải khác cách bạn làm nhưng cùng đạt DoD — vẫn tính là đạt, đây không phải đáp án duy nhất.
-
-### 4.1. Lời giải BT1 — Môi trường tái lập được
-
-**Bước 1 — Cài `uv` (nếu chưa có):**
-
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-# Kiểm tra
-uv --version
-```
-
-**Bước 2 — Cài Python 3.11 qua `uv` (không cần pyenv):**
+<details>
+<summary><strong>Lời giải chi tiết BT 2.1</strong> (bấm để mở)</summary>
 
 ```bash
 uv python install 3.11
-uv python list   # xác nhận 3.11 đã có trong danh sách
-```
+uv python list
 
-**Bước 3 — Khởi tạo dự án và ghim đúng phiên bản Python:**
-
-```bash
 uv init ai-lab
 cd ai-lab
-uv python pin 3.11   # tạo file .python-version = 3.11
-```
+uv python pin 3.11
 
-Lệnh này tạo ra cấu trúc:
-
-```
-ai-lab/
-├── .gitignore
-├── .python-version
-├── README.md
-├── main.py
-└── pyproject.toml
-```
-
-**Bước 4 — Thêm dependency:**
-
-```bash
 uv add numpy pandas matplotlib
-```
-
-Sau lệnh này, `uv` sẽ:
-1. Tạo `.venv/` trong thư mục dự án (nếu chưa có).
-2. Giải (resolve) toàn bộ dependency graph.
-3. Cài đặt vào `.venv/`.
-4. Cập nhật `pyproject.toml`:
-
-```toml
-[project]
-name = "ai-lab"
-version = "0.1.0"
-requires-python = ">=3.11"
-dependencies = [
-    "matplotlib>=3.9.0",
-    "numpy>=2.0.0",
-    "pandas>=2.2.0",
-]
-```
-
-5. Tạo/cập nhật `uv.lock` — file này **dài hàng trăm dòng**, khoá chính xác từng version + hash của numpy, pandas, matplotlib **và mọi thư viện mà chúng phụ thuộc vào** (ví dụ pandas phụ thuộc `python-dateutil`, `pytz`...).
-
-**Bước 5 — Ghi lại phiên bản numpy hiện tại (để đối chiếu sau):**
-
-```bash
 uv run python -c "import numpy; print(numpy.__version__)"
-# Ví dụ output: 2.1.3
-```
+# Ví dụ output: 2.1.3   <- ghi lại số này
 
-**Bước 6 — Xoá venv và tái tạo:**
-
-```bash
 rm -rf .venv
 uv sync
-```
 
-`uv sync` đọc **lock file** (không đọc lại `pyproject.toml` để giải dependency từ đầu) → tạo `.venv` mới → cài **chính xác** các phiên bản đã khoá.
-
-**Bước 7 — Kiểm chứng:**
-
-```bash
 uv run python -c "import numpy; print(numpy.__version__)"
-# Phải in ra: 2.1.3 (giống hệt bước 4)
+# Phải in ra: 2.1.3 (giống hệt trước đó)
 ```
 
-Nếu 2 số này khác nhau → có gì đó sai (ví dụ bạn quên commit lock file, hoặc dùng nhầm `uv add` thay vì `uv sync` khiến nó giải lại dependency).
-
-**Bước 8 — Đảm bảo `.venv` không vào git:**
-
-Kiểm tra file `.gitignore` (được `uv init` tự tạo sẵn) phải có dòng:
-
+Kiểm tra `.gitignore` (được `uv init` tự tạo sẵn) phải có:
 ```gitignore
 .venv/
 __pycache__/
@@ -279,104 +105,190 @@ git add .
 git status   # .venv/ KHÔNG được xuất hiện trong danh sách staged
 ```
 
-### 4.2. Lời giải BT2 — Script kiểm tra môi trường
+Nếu 2 số phiên bản numpy khác nhau → có gì đó sai (quên commit lock file, hoặc dùng nhầm `uv add` thay vì `uv sync`).
+</details>
 
-Tạo file `check_env.py`:
+---
+
+## 3. Phần 2.2 — VS Code cho AI Engineer
+
+### Lý thuyết
+
+Extension tối thiểu:
+1. **Python** (Microsoft) — chạy/debug code.
+2. **Pylance** — type checking, autocomplete (dựa trên Pyright).
+3. **Jupyter** — chạy notebook `.ipynb` ngay trong VS Code.
+4. **Ruff** — linter + formatter cực nhanh (thay flake8 + black + isort).
+
+Phím tắt quan trọng: `F5` chạy debug · `Ctrl+Shift+P` → "Python: Select Interpreter" (rất hay quên bước này!) · `Shift+Enter` chạy 1 cell trong notebook.
+
+### Bài tập 2.2 — Cấu hình VS Code
+
+- [ ] **BT 2.2.1** — Cài đủ 4 extension trên.
+- [ ] **BT 2.2.2** — Mở thư mục `ai-lab`, dùng "Python: Select Interpreter" chọn đúng `.venv` của dự án (không phải Python hệ thống). Chụp ảnh màn hình thanh trạng thái góc dưới bên trái xác nhận đúng interpreter.
+- [ ] **BT 2.2.3** — Đặt 1 breakpoint trong `check_env.py` (sẽ viết ở Phần 2.4), chạy `F5`, xác nhận debugger dừng đúng chỗ.
+
+<details>
+<summary><strong>Lời giải chi tiết BT 2.2</strong></summary>
+
+Không có code — đây là bài tập thao tác UI. Tiêu chí xác nhận: thanh trạng thái VS Code (góc dưới trái) hiển thị đường dẫn `.venv/bin/python` của đúng dự án `ai-lab`, không phải `/usr/bin/python3` hay bất kỳ Python hệ thống nào khác.
+</details>
+
+---
+
+## 4. Phần 2.3 — Notebook vs Script vs Colab
+
+### Lý thuyết
+
+| Công cụ | Ưu điểm | Nhược điểm | Dùng khi nào |
+|---|---|---|---|
+| Jupyter Notebook | Chạy từng cell, xem kết quả ngay | Khó version control, dễ chạy sai thứ tự cell | EDA, thử nghiệm nhanh |
+| Script `.py` | Version control sạch, test được | Không xem kết quả từng bước | Logic tái sử dụng, pipeline |
+| Google Colab | Miễn phí GPU, chia sẻ dễ | Mất session ~12h, mất dữ liệu nếu không mount Drive | Cần GPU miễn phí, demo |
+
+**Nguyên tắc của lộ trình:** logic quan trọng nằm trong file `.py`; notebook chỉ *gọi* logic đó và trực quan hoá.
 
 ```python
-"""Script kiểm tra môi trường phát triển AI Engineer.
+# Colab: mount Drive để giữ dữ liệu qua các phiên
+from google.colab import drive
+drive.mount('/content/drive')
+!nvidia-smi
+```
 
-Chạy bằng: uv run python check_env.py
+**Cạm bẫy Colab:** máy ảo bị thu hồi sau ~12 giờ (hoặc sớm hơn nếu ít hoạt động) — mọi thứ ngoài `/content/drive` sẽ mất, kể cả package đã cài.
+
+### Bài tập 2.3 — Notebook chạy được cả 2 nơi
+
+- [ ] **BT 2.3.1** — Tạo `00_hello.ipynb` trong `ai-lab`, import numpy/pandas, vẽ 1 biểu đồ đơn giản bằng matplotlib.
+- [ ] **BT 2.3.2** — Chạy notebook này thành công trong VS Code (dùng kernel từ `.venv`).
+- [ ] **BT 2.3.3** — Upload notebook lên Google Colab, mount Drive, chạy lại thành công (phải `!pip install` lại các package vì Colab không dùng `.venv` của bạn).
+
+<details>
+<summary><strong>Lời giải chi tiết BT 2.3</strong></summary>
+
+```python
+# 00_hello.ipynb — cell 1
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# cell 2
+x = np.linspace(0, 10, 100)
+y = np.sin(x)
+plt.plot(x, y)
+plt.title("Hello, AI Engineer roadmap")
+plt.xlabel("x")
+plt.ylabel("sin(x)")
+plt.show()
+
+# cell 3 — chỉ chạy trên Colab, bỏ qua khi chạy local
+# from google.colab import drive
+# drive.mount('/content/drive')
+```
+
+Trên Colab, thêm 1 cell đầu tiên: `!pip install -q numpy pandas matplotlib` (Colab không đọc `pyproject.toml`/`uv.lock` của bạn, nó có môi trường Python riêng).
+</details>
+
+---
+
+## 5. Dự án tổng hợp — Repo `ai-lab` hoàn chỉnh
+
+Dùng lại **toàn bộ** những gì đã làm ở Phần 2.1-2.3 để hoàn thiện 1 repo chuẩn, sẵn sàng dùng cho mọi bài học tiếp theo của Unit 01.
+
+### Yêu cầu
+
+- [ ] **DA.1** — Viết `check_env.py`: in ra phiên bản Python, phiên bản numpy/pandas/matplotlib/torch (nếu có), có GPU hay không, hệ điều hành. Có type hint + docstring đầy đủ (100% tiếng Anh).
+- [ ] **DA.2** — Viết `README.md` mô tả cách cài đặt và chạy, chỉ dùng lệnh `uv sync` + `uv run`.
+- [ ] **DA.3** — Đặt breakpoint trong `check_env.py`, debug bằng `F5` trong VS Code đã cấu hình ở Phần 2.2 (xác nhận Phần 2.2 hoạt động).
+- [ ] **DA.4** — Notebook `00_hello.ipynb` (từ Phần 2.3) gọi hàm từ `check_env.py` bằng `import` thay vì viết lại logic — chứng minh nguyên tắc "logic nằm trong `.py`, notebook chỉ gọi".
+- [ ] **DA.5** — Từ 1 thư mục hoàn toàn khác (hoặc nhờ người khác), `git clone` + `uv sync` + `uv run python check_env.py` chạy đúng trong dưới 5 phút, không cần sửa gì.
+
+<details>
+<summary><strong>Lời giải chi tiết — Dự án tổng hợp</strong></summary>
+
+**`check_env.py`:**
+
+```python
+"""Environment check script for the AI Engineer roadmap.
+
+Run with: uv run python check_env.py
 """
 import platform
 import sys
 
 
 def check_package(name: str) -> str:
-    """Trả về phiên bản của package, hoặc 'không cài' nếu chưa cài đặt."""
+    """Return the installed version of a package, or 'not installed'."""
     try:
         module = __import__(name)
-        version = getattr(module, "__version__", "không rõ phiên bản")
-        return version
+        return getattr(module, "__version__", "version unknown")
     except ImportError:
-        return "không cài"
+        return "not installed"
 
 
 def check_gpu() -> str:
-    """Kiểm tra GPU khả dụng thông qua PyTorch, nếu PyTorch đã được cài."""
+    """Check GPU availability through PyTorch, if PyTorch is installed."""
     try:
         import torch
         if torch.cuda.is_available():
             gpu_name = torch.cuda.get_device_name(0)
             gpu_count = torch.cuda.device_count()
-            return f"Có ({gpu_count} GPU, ví dụ: {gpu_name})"
-        return "Không (torch đã cài nhưng không thấy CUDA)"
+            return f"Available ({gpu_count} GPU, e.g. {gpu_name})"
+        return "Not available (torch installed, no CUDA device found)"
     except ImportError:
-        return "Không kiểm tra được (chưa cài torch)"
+        return "Cannot check (torch not installed)"
 
 
-def main() -> None:
+def build_report() -> dict[str, str]:
+    """Collect all environment information into a single dict, so it can
+    be both printed by this script and imported/reused from a notebook."""
+    return {
+        "os": f"{platform.system()} {platform.release()}",
+        "cpu_arch": platform.machine(),
+        "python_version": sys.version.split()[0],
+        "python_executable": sys.executable,
+        "numpy": check_package("numpy"),
+        "pandas": check_package("pandas"),
+        "matplotlib": check_package("matplotlib"),
+        "torch": check_package("torch"),
+        "gpu": check_gpu(),
+    }
+
+
+def print_report(report: dict[str, str]) -> None:
+    """Pretty-print the environment report to stdout."""
     print("=" * 50)
-    print("KIỂM TRA MÔI TRƯỜNG AI ENGINEER")
+    print("AI ENGINEER ENVIRONMENT CHECK")
     print("=" * 50)
-
-    print(f"\n[Hệ thống]")
-    print(f"  Hệ điều hành : {platform.system()} {platform.release()}")
-    print(f"  Kiến trúc CPU: {platform.machine()}")
-    print(f"  Python       : {sys.version.split()[0]}")
-    print(f"  Python path  : {sys.executable}")
-
-    print(f"\n[Thư viện chính]")
-    for pkg in ("numpy", "pandas", "matplotlib", "torch"):
-        print(f"  {pkg:<12}: {check_package(pkg)}")
-
-    print(f"\n[GPU]")
-    print(f"  CUDA khả dụng: {check_gpu()}")
-
-    print("\n" + "=" * 50)
+    for key, value in report.items():
+        print(f"  {key:<18}: {value}")
+    print("=" * 50)
 
 
 if __name__ == "__main__":
-    main()
+    print_report(build_report())
 ```
 
-**Chạy thử:**
+**`00_hello.ipynb` — cell gọi lại `check_env.py` (nguyên tắc DA.4):**
 
-```bash
-uv run python check_env.py
+```python
+# cell 1
+from check_env import build_report, print_report
+
+# cell 2 — reuse the exact same logic instead of rewriting it in the notebook
+print_report(build_report())
+
+# cell 3 — notebook-only part: visualization
+import matplotlib.pyplot as plt
+import numpy as np
+
+x = np.linspace(0, 10, 100)
+plt.plot(x, np.sin(x))
+plt.title("Hello, AI Engineer roadmap")
+plt.show()
 ```
 
-**Output mẫu (không có torch/GPU):**
-
-```
-==================================================
-KIỂM TRA MÔI TRƯỜNG AI ENGINEER
-==================================================
-
-[Hệ thống]
-  Hệ điều hành : Linux 6.8.0
-  Kiến trúc CPU: x86_64
-  Python       : 3.11.9
-  Python path  : /home/user/ai-lab/.venv/bin/python
-
-[Thư viện chính]
-  numpy       : 2.1.3
-  pandas      : 2.2.3
-  matplotlib  : 3.9.2
-  torch       : không cài
-
-[GPU]
-  CUDA khả dụng: Không kiểm tra được (chưa cài torch)
-
-==================================================
-```
-
-**Giải thích các quyết định thiết kế trong code:**
-- Dùng `try/except ImportError` thay vì kiểm tra package có trong `pip list` — vì cách này đúng với triết lý "thử làm, bắt lỗi nếu thất bại" (EAFP — *Easier to Ask Forgiveness than Permission*) rất Pythonic, sẽ học kỹ ở Bài 1.6.
-- Tách `check_package` và `check_gpu` thành hàm riêng, có docstring, có type hint (`-> str`) — đúng chuẩn sẽ học ở Bài 1.5.
-- `if __name__ == "__main__":` đảm bảo file này vừa chạy được trực tiếp, vừa import được vào chỗ khác mà không tự động chạy `main()` — sẽ học kỹ ở Bài 1.3.
-
-### 4.3. README.md mẫu cho repo `ai-lab`
+**`README.md`:**
 
 ```markdown
 # ai-lab
@@ -384,12 +296,9 @@ KIỂM TRA MÔI TRƯỜNG AI ENGINEER
 Repo thực hành cá nhân cho lộ trình AI Engineer — Unit 01.
 
 ## Yêu cầu
-
-- Python 3.11+
-- [uv](https://docs.astral.sh/uv/) đã cài đặt
+- [uv](https://docs.astral.sh/uv/) đã cài đặt (tự quản lý Python version, không cần cài Python riêng)
 
 ## Cài đặt
-
 \`\`\`bash
 git clone <your-repo-url>
 cd ai-lab
@@ -397,60 +306,69 @@ uv sync
 \`\`\`
 
 ## Chạy thử
-
 \`\`\`bash
 uv run python check_env.py
 \`\`\`
 
 ## Cấu trúc
-
-- `check_env.py` — script kiểm tra môi trường (Python, package, GPU)
-- `00_hello.ipynb` — notebook thử nghiệm đầu tiên, chạy được cả local và Colab
+- `check_env.py` — script + hàm tái sử dụng kiểm tra môi trường
+- `00_hello.ipynb` — notebook thử nghiệm, tái sử dụng logic từ check_env.py
 ```
 
-### 4.4. Đáp án 5 câu tự kiểm tra kiến thức
-
-**Câu 1: Khác nhau venv vs conda?**
-
-> `venv` chỉ cô lập package Python thuần (dựa trên `pip`), dùng chung phiên bản Python đã cài trên máy. `conda` là trình quản lý gói **đa ngôn ngữ** (Python, C, R...) và **có thể tự cài cả phiên bản Python khác** vào environment — hữu ích khi cần các thư viện có phần biên dịch C/CUDA phức tạp mà pip khó build (ví dụ một số bản CUDA toolkit cũ). Với dự án Python thuần và pip-compatible, `uv`/`venv` gọn nhẹ và nhanh hơn.
-
-**Câu 2: Vì sao cần lock file?**
-
-> `pyproject.toml` chỉ khai báo khoảng version chấp nhận được (ví dụ `numpy>=1.26`). Nếu 2 người cùng chạy `pip install` vào 2 thời điểm khác nhau, họ có thể nhận **2 phiên bản numpy khác nhau** (vì numpy ra bản mới liên tục) → "chạy trên máy tôi nhưng lỗi trên máy bạn". Lock file khoá **chính xác từng phiên bản, của cả transitive dependency**, đảm bảo mọi người luôn cài đúng 1 bộ gói giống hệt nhau.
-
-**Câu 3: `__pycache__` có nên commit?**
-
-> Không. Đây là thư mục Python tự sinh ra chứa file `.pyc` (bytecode đã biên dịch) để tăng tốc lần chạy sau — hoàn toàn là artifact tạm thời, tái tạo tự động, phụ thuộc vào phiên bản Python đang chạy. Commit nó vào git chỉ gây rác và xung đột không cần thiết. Luôn có `__pycache__/` trong `.gitignore`.
-
-**Câu 4: `PYTHONPATH` dùng làm gì?**
-
-> `PYTHONPATH` là biến môi trường liệt kê thêm các thư mục mà Python sẽ tìm khi bạn `import` một module, bổ sung vào danh sách mặc định (thư mục hiện tại, thư mục cài package, thư viện chuẩn). Hữu ích khi bạn muốn import code từ một thư mục không nằm trong cấu trúc package chuẩn mà không muốn cài đặt (`pip install -e .`) nó. Trong dự án có cấu trúc `pyproject.toml` chuẩn, ta thường ưu tiên cài package ở chế độ "editable" (`uv pip install -e .`) thay vì chỉnh `PYTHONPATH` thủ công, để tránh phụ thuộc vào biến môi trường dễ quên.
-
-**Câu 5: Colab mất dữ liệu khi nào?**
-
-> Colab chạy trên 1 máy ảo tạm thời. Dữ liệu **mất** khi: (a) máy ảo bị thu hồi sau khoảng ~12 giờ hoạt động liên tục hoặc ~90 phút không tương tác (với free tier), (b) bạn chủ động "Disconnect and delete runtime", hoặc (c) hết phiên do quá tải hệ thống của Google. Mọi thứ lưu ở `/content/` (không phải `/content/drive/`) sẽ mất hoàn toàn, bao gồm cả package đã `pip install` (phải cài lại mỗi phiên) và file bạn tạo ra. Giải pháp: luôn `drive.mount()` và lưu checkpoint/kết quả quan trọng vào `/content/drive/MyDrive/...`.
+**Kiểm chứng DA.5:** trên máy sạch (hoặc container mới):
+```bash
+git clone <url> test-clone && cd test-clone
+time (uv sync && uv run python check_env.py)
+# real   0mXX.XXXs   <- phải dưới 5 phút
+```
+</details>
 
 ---
 
-## 5. Tổng kết & bước tiếp theo
+## 6. Đáp án 5 câu tự kiểm tra kiến thức
 
-Bạn đã có:
-- ✅ Một cách quản lý Python version và dependency chuyên nghiệp, nhanh, tái lập được — tất cả chỉ bằng `uv`.
-- ✅ Repo mẫu `ai-lab` — **hãy giữ và mở rộng repo này**, nó sẽ là nền cho các bài tập tiếp theo của Unit 01.
-- ✅ Hiểu rõ khi nào dùng notebook, khi nào dùng script, khi nào dùng Colab.
+- [ ] Đã trả lời cả 5 câu bằng lời của chính bạn trong `SUBMISSION.md` trước khi mở phần dưới đây.
+
+<details>
+<summary><strong>Đáp án tham khảo</strong></summary>
+
+**Câu 1: Khác nhau venv vs conda?**
+> `venv` chỉ cô lập package Python thuần (dựa trên pip), dùng chung Python đã cài trên máy. `conda` là trình quản lý gói đa ngôn ngữ, có thể tự cài cả Python — hữu ích khi cần binary biên dịch phức tạp (CUDA toolkit cũ) mà pip khó build.
+
+**Câu 2: Vì sao cần lock file?**
+> `pyproject.toml` chỉ khai báo khoảng version chấp nhận được. Nếu 2 người `pip install` ở 2 thời điểm khác nhau có thể nhận 2 phiên bản khác nhau. Lock file khoá chính xác từng phiên bản (kể cả transitive dependency), đảm bảo mọi người cài đúng 1 bộ gói giống hệt nhau.
+
+**Câu 3: `__pycache__` có nên commit?**
+> Không — là artifact tạm thời Python tự sinh, tái tạo tự động, phụ thuộc phiên bản Python đang chạy. Luôn có trong `.gitignore`.
+
+**Câu 4: `PYTHONPATH` dùng làm gì?**
+> Liệt kê thêm thư mục Python tìm khi `import`, bổ sung vào danh sách mặc định. Trong dự án có `pyproject.toml` chuẩn, nên ưu tiên cài package ở chế độ editable (`pip install -e .`) thay vì chỉnh `PYTHONPATH` thủ công.
+
+**Câu 5: Colab mất dữ liệu khi nào?**
+> Khi máy ảo bị thu hồi sau ~12h hoạt động liên tục hoặc ~90 phút không tương tác (free tier), hoặc bạn chủ động disconnect. Mọi thứ ở `/content/` (không phải `/content/drive/`) sẽ mất — luôn `drive.mount()` và lưu kết quả quan trọng vào Drive.
+</details>
+
+---
+
+## 7. Tổng kết & bước tiếp theo
+
+- ✅ Môi trường Python quản lý bằng `uv` duy nhất — nhanh, tái lập được.
+- ✅ VS Code cấu hình đúng interpreter, debug được.
+- ✅ Repo `ai-lab` hoàn chỉnh — **giữ và mở rộng repo này** cho các bài tiếp theo.
 
 **Bài tiếp theo:** U01-02 — Python core: kiểu dữ liệu & luồng điều khiển.
 
 ---
 
-## 6. Ghi điểm (dành cho người chấm)
+## 8. Ghi điểm (dành cho người chấm)
 
 | Tiêu chí | Điểm tối đa |
 |---|---|
-| Repo có đủ `pyproject.toml` + `uv.lock` + `.gitignore` + `README.md` | 2 |
-| `uv sync` tái tạo môi trường thành công, version khớp trước/sau | 3 |
-| `check_env.py` chạy đúng, in đủ thông tin yêu cầu, có type hint + docstring | 3 |
-| Trả lời đúng ≥4/5 câu hỏi tự kiểm tra (viết ra, không chỉ nghĩ trong đầu) | 2 |
+| Phần 2.1: môi trường tái lập được, version khớp trước/sau | 2 |
+| Phần 2.2: VS Code cấu hình đúng, debug chạy được | 1 |
+| Phần 2.3: notebook chạy cả local lẫn Colab | 1 |
+| Dự án tổng hợp: `check_env.py` đúng, README rõ ràng, DA.5 chạy < 5 phút | 4 |
+| Trả lời đúng ≥4/5 câu hỏi tự kiểm tra | 2 |
 | **Tổng** | **10** |
 
-Đạt ≥ 8/10 → tick ☑ ở sheet `U01_Python_CS` trong workmap Excel, ghi ngày hoàn thành và giờ thực tế. Dưới 8 → xem lại phần nào sai trong lời giải chi tiết, sửa và nộp lại.
+Đạt ≥ 8/10 → tick ☑ ở sheet `U01_Python_CS` trong workmap Excel, ghi ngày hoàn thành và giờ thực tế.
